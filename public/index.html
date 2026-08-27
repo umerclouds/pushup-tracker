@@ -244,6 +244,7 @@ function keyOf(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,
 function todayKey(){ return keyOf(new Date()); }
 function fmt(n){ return (Number(n)||0).toLocaleString('en-GB'); }
 function sumLog(log){ let t=0; for(const k in log){ t+=Number(log[k])||0; } return t; }
+function sumSept(log){ const p=septYear()+'-09-'; let t=0; for(const k in log){ if(k.startsWith(p)) t+=Number(log[k])||0; } return t; }
 function prettyDate(){ return new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}); }
 function streak(log){
   let s=0; const d=new Date();
@@ -369,7 +370,7 @@ function renderYou(){
 
 let lastTeamTotal = 0;
 function renderBoard(){
-  const people = members.map(m=>({ id:m.id, name:m.name||'Player', total:sumLog(m.log||{}) }));
+  const people = members.map(m=>({ id:m.id, name:m.name||'Player', total:sumSept(m.log||{}) }));
   people.sort((a,b)=> b.total-a.total || a.name.localeCompare(b.name));
   const team = people.reduce((s,p)=>s+p.total,0);
 
@@ -472,7 +473,7 @@ function countTo(id, from, to){
 /* ---------- share ---------- */
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   await refresh();
-  const people = members.map(m=>({ name:m.name||'Player', total:sumLog(m.log||{}) }))
+  const people = members.map(m=>({ name:m.name||'Player', total:sumSept(m.log||{}) }))
                         .sort((a,b)=>b.total-a.total);
   const team = people.reduce((s,p)=>s+p.total,0);
   const top = people.slice(0,5).map((p,i)=>`${i+1}. ${p.name} — ${fmt(p.total)}`).join('\n');
