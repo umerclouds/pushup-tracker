@@ -121,6 +121,13 @@
   .join .go{width:100%; padding:15px; border-radius:14px; border:none; background:var(--gold); color:#1a1400; font-weight:800; font-size:16px; font-family:var(--disp); letter-spacing:.04em; cursor:pointer}
   .join .go:active{transform:scale(.98)}
   .join .note{font-size:11px; color:var(--muted); margin-top:14px}
+  .join .pickcap{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px}
+  .join .picks{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px}
+  .join .pick{padding:10px 16px; border-radius:999px; background:#0c1a28; border:1px solid var(--line); color:var(--ink); font-size:15px; cursor:pointer}
+  .join .pick:hover,.join .pick:focus{border-color:var(--gold); outline:none}
+  .join .pick:active{transform:scale(.96)}
+  .join .or{display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; margin-bottom:12px}
+  .join .or::before,.join .or::after{content:''; flex:1; height:1px; background:var(--line)}
   .hidden{display:none !important}
   .bar.fund>span{background:linear-gradient(90deg,var(--pink),#ff7eb0)}
   .fundtop{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
@@ -159,6 +166,11 @@
   <section id="joinView" class="join hidden">
     <h1>Join the challenge</h1>
     <p>100 push-ups a day, all September. Log yours here and watch the team total climb. Pop your name in to get started.</p>
+    <div id="returning" class="hidden">
+      <div class="pickcap">Already joined? Tap your name</div>
+      <div class="picks" id="pickList"></div>
+      <div class="or">or join as a new player</div>
+    </div>
     <input id="nameInput" type="text" placeholder="Your name" maxlength="24" autocomplete="off" />
     <button class="go" id="joinBtn">Count me in</button>
     <div class="note">The leaderboard is shared — everyone with the link sees each other's totals. That's the point.</div>
@@ -274,7 +286,25 @@ function saveMe(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(me)); }catch
 async function boot(){
   loadMe();
   if(me && me.id){ show('dashView'); await refresh(); startPolling(); }
-  else show('joinView');
+  else { show('joinView'); loadJoinList(); }
+}
+async function loadJoinList(){
+  try{
+    const s = await api('/api/state');
+    const list = (s.members||[]).filter(m=>m.id&&m.name).sort((a,b)=>a.name.localeCompare(b.name));
+    if(!list.length) return;
+    document.getElementById('pickList').innerHTML = list.map(m=>
+      '<button class="pick" data-id="'+escapeHtml(m.id)+'" data-name="'+escapeHtml(m.name)+'">'+escapeHtml(m.name)+'</button>'
+    ).join('');
+    document.querySelectorAll('#pickList .pick').forEach(b=>
+      b.addEventListener('click', ()=>pickPlayer(b.dataset.id, b.dataset.name)));
+    document.getElementById('returning').classList.remove('hidden');
+  }catch(e){}
+}
+async function pickPlayer(id, name){
+  me = { id, name };
+  saveMe();
+  show('dashView'); await refresh(); startPolling();
 }
 function show(id){ ['joinView','dashView'].forEach(v=>document.getElementById(v).classList.toggle('hidden', v!==id)); }
 
