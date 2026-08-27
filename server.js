@@ -22,11 +22,12 @@ const DB_FILE = path.join(DATA_DIR, 'db.json');
 const TMP_FILE = DB_FILE + '.tmp';
 
 /* ---------- load ---------- */
-let db = { members: {} };
+let db = { members: {}, donations: { target: 0, raised: 0 } };
 try {
   const parsed = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
   if (parsed && typeof parsed === 'object') { db = parsed; if (!db.members) db.members = {}; }
 } catch (e) { db = { members: {} }; }
+if (!db.donations) db.donations = { target: 0, raised: 0 };
 
 /* ---------- atomic write queue ---------- */
 let chain = Promise.resolve();
@@ -59,12 +60,18 @@ function upsert(id, name) {
   return db.members[id];
 }
 
+function money(n) {
+  n = Number(n);
+  if (!isFinite(n) || n < 0) return 0;
+  return Math.min(10000000, Math.round(n * 100) / 100);
+}
+
 /* ---------- API ---------- */
 app.get('/api/state', (req, res) => {
   const members = Object.entries(db.members).map(([id, m]) => ({
     id, name: m.name, log: m.log || {}
   }));
-  res.json({ members });
+  res.json({ members, donations: db.donations });
 });
 
 app.post('/api/join', async (req, res) => {
@@ -97,7 +104,53 @@ app.post('/api/reset', async (req, res) => {
   res.json({ ok: true });
 });
 
+/* ---------- admin ----------
+   Enabled only when ADMIN_TOKEN is set in the environment.
+   Every admin request must carry the token in the x-admin-token header. */
+function requireAdmin(req, res, next) {
+  const token = process.env.ADMIN_TOKEN;
+  if (!token) return res.status(403).json({ error: 'admin disabled — set ADMIN_TOKEN env var' });
+  if (req.get('x-admin-token') !== token) return res.status(401).json({ error: 'invalid token' });
+  next();
+}
+
+app.post('/api/admin/verify', requireAdmin, (req, res) => res.json({ ok: true }));
+
+app.post('/api/admin/rename', requireAdmin, async (req, res) => {
+  const id = slug(req.body.id);
+  const name = cleanName(req.body.name);
+  if (!id || !name || !db.members[id]) return res.status(400).json({ error: 'bad request' });
+  db.members[id].name = name;
+  await persist();
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/remove', requireAdmin, async (req, res) => {
+  const id = slug(req.body.id);
+  if (!id || !db.members[id]) return res.status(400).json({ error: 'bad request' });
+  delete db.members[id];
+  await persist();
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/setday', requireAdmin, async (req, res) => {
+  const id = slug(req.body.id);
+  const date = validDate(req.body.date) ? req.body.date : null;
+  if (!id || !date || !db.members[id]) return res.status(400).json({ error: 'bad request' });
+  if (!db.members[id].log) db.members[id].log = {};
+  db.members[id].log[date] = clampAmt(req.body.amount);
+  await persist();
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/donations', requireAdmin, async (req, res) => {
+  db.donations = { target: money(req.body.target), raised: money(req.body.raised) };
+  await persist();
+  res.json({ ok: true, donations: db.donations });
+});
+
 /* ---------- static frontend ---------- */
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 

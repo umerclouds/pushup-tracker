@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Admin · Team Push-Up Challenge</title>
+<style>
+  :root{
+    --bg:#0B1622; --panel:#132538; --panel2:#0F1E2E; --line:#24405B;
+    --ink:#F3F7FB; --muted:#8DA2B8; --gold:#F5C518; --teal:#2FD3C4;
+    --pink:#FF2E7E; --good:#57D38C; --bad:#FF5C5C;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg); color:var(--ink); font-family:Inter,system-ui,sans-serif;
+    line-height:1.45; padding:18px 16px 40px; max-width:560px; margin:0 auto}
+  h1{font-size:20px; margin:6px 0 16px; text-align:center}
+  h1 small{display:block; font-size:11px; font-weight:600; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--muted); margin-top:4px}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; margin-top:14px}
+  .card h2{font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:0 0 12px}
+  input{padding:10px 12px; border-radius:10px; background:#0c1a28; border:1px solid var(--line);
+    color:var(--ink); font-size:14px; font-family:inherit; width:100%}
+  input:focus{outline:2px solid var(--teal); outline-offset:1px}
+  button{padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:700;
+    font-size:13px; font-family:inherit; background:var(--teal); color:#04211d; white-space:nowrap}
+  button:active{transform:scale(.97)}
+  button.warn{background:transparent; border:1px solid var(--bad); color:var(--bad)}
+  button.warn.armed{background:var(--bad); color:#fff}
+  button.ghost{background:transparent; border:1px solid var(--line); color:var(--muted)}
+  .fr{display:flex; gap:8px; margin-top:8px; align-items:center}
+  .fr label{font-size:12px; color:var(--muted); min-width:86px}
+  .member{border-top:1px solid rgba(36,64,91,.5); padding:12px 0}
+  .member:first-of-type{border-top:none; padding-top:0}
+  .mname{font-weight:700; font-size:15px; display:flex; justify-content:space-between; align-items:center; gap:8px}
+  .mname small{color:var(--muted); font-weight:500; font-size:12px}
+  .msg{font-size:13px; margin-top:10px; min-height:18px}
+  .msg.ok{color:var(--good)} .msg.err{color:var(--bad)}
+  .hidden{display:none !important}
+  .note{font-size:11px; color:var(--muted); margin-top:12px; line-height:1.6}
+  a{color:var(--teal)}
+</style>
+</head>
+<body>
+  <h1>🛠️ Challenge Admin <small>Team push-up tracker</small></h1>
+
+  <!-- GATE -->
+  <section class="card" id="gate">
+    <h2>Admin access</h2>
+    <div class="fr"><input id="tokenInput" type="password" placeholder="Admin token" autocomplete="off" /><button id="unlockBtn">Unlock</button></div>
+    <div class="msg" id="gateMsg"></div>
+  </section>
+
+  <!-- PANEL -->
+  <div id="panel" class="hidden">
+    <section class="card">
+      <h2>Fundraising</h2>
+      <div class="fr"><label for="fTarget">Target £</label><input id="fTarget" type="number" min="0" step="1" /></div>
+      <div class="fr"><label for="fRaised">Raised £</label><input id="fRaised" type="number" min="0" step="0.01" /></div>
+      <div class="fr"><button id="fundSave">Save donation figures</button></div>
+      <div class="msg" id="fundMsg"></div>
+      <div class="note">Check the amount raised on the
+        <a href="https://fundraise.cancerresearchuk.org/page/100-push-ups-a-day-in-september-challenge-7185" target="_blank" rel="noopener">CRUK page</a>
+        and update it here — it shows on everyone's dashboard.</div>
+    </section>
+
+    <section class="card">
+      <h2>Members</h2>
+      <div id="memberList"></div>
+      <div class="msg" id="memMsg"></div>
+    </section>
+
+    <div class="note" style="text-align:center">
+      Changes are instant for the whole team. <a href="/">← Back to the tracker</a>
+    </div>
+  </div>
+
+<script>
+const TK = 'pushup-admin-token';
+let token = sessionStorage.getItem(TK) || '';
+let members = [];
+
+async function api(pathname, body){
+  const headers = { 'Content-Type':'application/json' };
+  if(token) headers['x-admin-token'] = token;
+  const r = await fetch(pathname, body ? { method:'POST', headers, body:JSON.stringify(body) } : { headers });
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(data.error || ('http '+r.status));
+  return data;
+}
+function fmt(n){ return (Number(n)||0).toLocaleString('en-GB'); }
+function sumLog(log){ let t=0; for(const k in log){ t+=Number(log[k])||0; } return t; }
+function todayKey(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function say(id, text, ok){ const el=document.getElementById(id); el.textContent=text; el.className='msg '+(ok?'ok':'err');
+  if(ok) setTimeout(()=>{ el.textContent=''; }, 2500); }
+
+/* ---------- gate ---------- */
+async function unlock(){
+  token = document.getElementById('tokenInput').value.trim();
+  if(!token){ document.getElementById('tokenInput').focus(); return; }
+  try{
+    await api('/api/admin/verify', {});
+    sessionStorage.setItem(TK, token);
+    document.getElementById('gate').classList.add('hidden');
+    document.getElementById('panel').classList.remove('hidden');
+    await load();
+  }catch(e){ say('gateMsg', e.message==='invalid token' ? 'Wrong token.' : e.message, false); }
+}
+document.getElementById('unlockBtn').addEventListener('click', unlock);
+document.getElementById('tokenInput').addEventListener('keydown', e=>{ if(e.key==='Enter') unlock(); });
+
+/* ---------- load ---------- */
+async function load(){
+  const s = await api('/api/state');
+  members = s.members || [];
+  const d = s.donations || { target:0, raised:0 };
+  document.getElementById('fTarget').value = d.target || '';
+  document.getElementById('fRaised').value = d.raised || '';
+  renderMembers();
+}
+
+/* ---------- fundraising ---------- */
+document.getElementById('fundSave').addEventListener('click', async ()=>{
+  try{
+    await api('/api/admin/donations', {
+      target: Number(document.getElementById('fTarget').value)||0,
+      raised: Number(document.getElementById('fRaised').value)||0
+    });
+    say('fundMsg','Saved — live on the dashboard.', true);
+  }catch(e){ say('fundMsg', e.message, false); }
+});
+
+/* ---------- members ---------- */
+function renderMembers(){
+  const list = document.getElementById('memberList');
+  if(members.length===0){ list.innerHTML='<div class="note">Nobody has joined yet.</div>'; return; }
+  list.innerHTML = members.map((m,i)=>
+    '<div class="member" data-i="'+i+'">'
+    + '<div class="mname">'+esc(m.name)+'<small>'+fmt(sumLog(m.log))+' total · id '+esc(m.id)+'</small></div>'
+    + '<div class="fr"><input class="rn" type="text" maxlength="24" placeholder="New name" /><button class="rnb">Rename</button></div>'
+    + '<div class="fr"><input class="dt" type="date" value="'+todayKey()+'" /><input class="ct" type="number" min="0" placeholder="Count" /><button class="sdb">Set day</button></div>'
+    + '<div class="fr"><button class="warn rmb">Remove member</button></div>'
+    + '</div>'
+  ).join('');
+
+  list.querySelectorAll('.member').forEach(el=>{
+    const m = members[Number(el.dataset.i)];
+    el.querySelector('.rnb').addEventListener('click', async ()=>{
+      const name = el.querySelector('.rn').value.trim();
+      if(!name) return;
+      try{ await api('/api/admin/rename', { id:m.id, name }); say('memMsg','Renamed.', true); await load(); }
+      catch(e){ say('memMsg', e.message, false); }
+    });
+    el.querySelector('.sdb').addEventListener('click', async ()=>{
+      const date = el.querySelector('.dt').value;
+      const amount = el.querySelector('.ct').value;
+      if(!date || amount==='') return;
+      try{ await api('/api/admin/setday', { id:m.id, date, amount:Number(amount) }); say('memMsg','Day updated.', true); await load(); }
+      catch(e){ say('memMsg', e.message, false); }
+    });
+    /* remove is two-tap: first tap arms the button, second confirms */
+    const rm = el.querySelector('.rmb');
+    rm.addEventListener('click', async ()=>{
+      if(!rm.classList.contains('armed')){
+        rm.classList.add('armed'); rm.textContent='Tap again to remove '+m.name;
+        setTimeout(()=>{ rm.classList.remove('armed'); rm.textContent='Remove member'; }, 3000);
+        return;
+      }
+      try{ await api('/api/admin/remove', { id:m.id }); say('memMsg','Removed.', true); await load(); }
+      catch(e){ say('memMsg', e.message, false); }
+    });
+  });
+}
+
+/* auto-unlock if token already in this session */
+if(token){ document.getElementById('tokenInput').value = token; unlock(); }
+</script>
+</body>
+</html>

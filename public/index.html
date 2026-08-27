@@ -122,6 +122,32 @@
   .join .go:active{transform:scale(.98)}
   .join .note{font-size:11px; color:var(--muted); margin-top:14px}
   .hidden{display:none !important}
+  .bar.fund>span{background:linear-gradient(90deg,var(--pink),#ff7eb0)}
+  .fundtop{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+  .fundtop .num{font-family:var(--disp); font-weight:700; font-size:34px; color:var(--pink); line-height:1; font-variant-numeric:tabular-nums}
+  .fundtop .goal{font-size:13px; color:var(--muted)}
+  .row.click{cursor:pointer}
+  .row.click:hover{background:rgba(47,211,196,.06); border-radius:10px}
+  .modal-back{position:fixed; inset:0; background:rgba(4,10,17,.72); display:flex; align-items:center; justify-content:center; padding:16px; z-index:50}
+  .modal{background:var(--panel); border:1px solid var(--line); border-radius:18px; max-width:430px; width:100%; max-height:88vh; overflow:auto; padding:18px}
+  .modal .mhead{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:2px}
+  .modal h3{font-family:var(--disp); font-weight:800; font-size:28px; margin:0; letter-spacing:.3px}
+  .modal .msub{font-size:12px; color:var(--muted); margin-bottom:10px}
+  .modal .close{background:none; border:1px solid var(--line); color:var(--muted); border-radius:10px; padding:6px 12px; cursor:pointer; font-size:13px}
+  .statgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:10px 0 4px}
+  .stat{background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:8px 4px; text-align:center}
+  .stat .v{font-family:var(--disp); font-weight:700; font-size:21px; font-variant-numeric:tabular-nums}
+  .stat .l{font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-top:2px}
+  .mlabel{font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:14px 0 8px}
+  .cal{display:grid; grid-template-columns:repeat(6,1fr); gap:6px}
+  .cal .d{background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:5px 2px; text-align:center; font-size:10px; color:var(--muted)}
+  .cal .d b{display:block; font-family:var(--disp); font-weight:700; font-size:15px; color:#41566e; font-variant-numeric:tabular-nums}
+  .cal .d.part{border-color:rgba(47,211,196,.5)} .cal .d.part b{color:var(--teal)}
+  .cal .d.ton{border-color:rgba(245,197,24,.6); background:rgba(245,197,24,.08)} .cal .d.ton b{color:var(--gold)}
+  .badges{display:flex; flex-wrap:wrap; gap:8px}
+  .badge{display:inline-flex; align-items:center; gap:6px; background:var(--panel2); border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600}
+  .badge.on{border-color:rgba(245,197,24,.55)}
+  .badge.off{opacity:.32; filter:grayscale(1)}
   @media (prefers-reduced-motion: reduce){*{transition:none !important}}
 </style>
 </head>
@@ -174,6 +200,16 @@
       <div id="board"></div>
     </section>
 
+    <section class="card hidden" id="fundCard">
+      <h2>Fundraising · Cancer Research UK</h2>
+      <div class="fundtop">
+        <div class="num" id="fundRaised">£0</div>
+        <div class="goal" id="fundTarget"></div>
+      </div>
+      <div class="bar fund" id="fundBar"><span></span></div>
+      <div class="barnote" id="fundNote"></div>
+    </section>
+
     <div class="actions">
       <button class="btn share" id="shareBtn">📣 Share standings</button>
       <a class="btn donate" href="https://fundraise.cancerresearchuk.org/page/100-push-ups-a-day-in-september-challenge-7185" target="_blank" rel="noopener">💷 Donate</a>
@@ -184,6 +220,11 @@
       Every rep counts toward one shared total.<br>Log honest, cheer loud, finish the season strong. 🏏
     </div>
   </main>
+
+  <!-- PLAYER DETAIL MODAL -->
+  <div class="modal-back hidden" id="modalBack">
+    <div class="modal" id="modalBox"></div>
+  </div>
 
 <script>
 const CRUK = 'https://fundraise.cancerresearchuk.org/page/100-push-ups-a-day-in-september-challenge-7185';
@@ -223,6 +264,7 @@ function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<'
 /* ---------- state ---------- */
 let me = null;       // {id, name}
 let members = [];    // [{id,name,log}]
+let donations = { target: 0, raised: 0 };
 
 function loadMe(){ try{ me = JSON.parse(localStorage.getItem(LS_KEY)); }catch(e){ me=null; } }
 function saveMe(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(me)); }catch(e){} }
@@ -279,7 +321,11 @@ document.getElementById('resetToday').addEventListener('click', async ()=>{
 
 /* ---------- refresh ---------- */
 async function refresh(){
-  try{ const s = await api('/api/state'); members = s.members || []; }catch(e){}
+  try{
+    const s = await api('/api/state');
+    members = s.members || [];
+    donations = s.donations || { target:0, raised:0 };
+  }catch(e){}
   renderAll();
 }
 document.getElementById('refreshBtn').addEventListener('click', refresh);
@@ -289,7 +335,21 @@ window.addEventListener('focus', ()=>{ if(me) refresh(); });
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && me) refresh(); });
 
 /* ---------- render ---------- */
-function renderAll(){ renderYou(); renderBoard(); }
+function renderAll(){ renderYou(); renderBoard(); renderFund(); }
+
+function renderFund(){
+  const card = document.getElementById('fundCard');
+  const t = Number(donations.target)||0, r = Number(donations.raised)||0;
+  if(t<=0 && r<=0){ card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+  document.getElementById('fundRaised').textContent = '£'+fmt(r);
+  document.getElementById('fundTarget').textContent = t>0 ? 'of £'+fmt(t)+' target' : 'raised so far';
+  const bar = document.getElementById('fundBar');
+  bar.querySelector('span').style.width = (t>0 ? Math.min(100, r/t*100) : 0)+'%';
+  bar.classList.toggle('done', t>0 && r>=t);
+  document.getElementById('fundNote').innerHTML =
+    t<=0 ? '' : (r>=t ? '<b>Target smashed — legends!</b> 🎉' : '£'+fmt(Math.max(0,t-r))+' to go — every donation counts 💷');
+}
 
 function renderYou(){
   const mine = me ? members.find(x=>x.id===me.id) : null;
@@ -324,13 +384,78 @@ function renderBoard(){
     const isMe = me && p.id===me.id;
     const rank = i<3 ? medals[i] : (i+1);
     const days = Math.round(p.total/100);
-    return '<div class="row'+(isMe?' me':'')+'">'
+    return '<div class="row click'+(isMe?' me':'')+'" data-id="'+escapeHtml(p.id)+'">'
       + '<div class="rank">'+rank+'</div>'
       + '<div class="name">'+escapeHtml(p.name)+(isMe?'<span class="youtag">YOU</span>':'')+'</div>'
       + '<div class="score">'+fmt(p.total)+'<small>'+ (p.total>=100 ? '≈'+days+' days\' worth' : 'keep going') +'</small></div>'
       + '</div>';
   }).join('');
+  board.querySelectorAll('.row.click').forEach(r=>{
+    r.addEventListener('click', ()=>showPlayer(r.dataset.id));
+  });
 }
+
+/* ---------- player detail modal ---------- */
+function septYear(){ return new Date().getFullYear(); }
+function septKey(day){ return septYear()+'-09-'+String(day).padStart(2,'0'); }
+
+function septStats(log){
+  const days=[]; let total=0, best=0, bestDay=0, tons=0, logged=0;
+  for(let d=1; d<=30; d++){
+    const v = Number(log[septKey(d)])||0;
+    days.push(v); total+=v;
+    if(v>0) logged++;
+    if(v>=100) tons++;
+    if(v>best){ best=v; bestDay=d; }
+  }
+  let perfectWeek=false, run=0;
+  for(const v of days){ run = v>=100 ? run+1 : 0; if(run>=7){ perfectWeek=true; break; } }
+  return { days, total, best, bestDay, tons, logged, perfectWeek };
+}
+
+function showPlayer(id){
+  const m = members.find(x=>x.id===id);
+  if(!m) return;
+  const log = m.log||{};
+  const s = septStats(log);
+  const allTime = sumLog(log);
+  const badges = [
+    { icon:'💪', label:'Off the mark',  on: allTime>0,        tip:'first push-ups logged' },
+    { icon:'🏅', label:'First ton',     on: s.best>=100,      tip:'100 in a day' },
+    { icon:'⚡', label:'150 club',      on: s.best>=150,      tip:'150+ in a day' },
+    { icon:'🔥', label:'Perfect week',  on: s.perfectWeek,    tip:'7 straight days of 100+' },
+    { icon:'🥉', label:'1,000 club',    on: s.total>=1000,    tip:'1,000 in September' },
+    { icon:'🥈', label:'2,000 club',    on: s.total>=2000,    tip:'2,000 in September' },
+    { icon:'🏆', label:'Full 3,000',    on: s.total>=3000,    tip:'the whole challenge' },
+  ];
+  const box = document.getElementById('modalBox');
+  box.innerHTML =
+    '<div class="mhead"><h3>'+escapeHtml(m.name||'Player')+'</h3>'
+    + '<button class="close" id="modalClose">Close ✕</button></div>'
+    + '<div class="msub">September '+septYear()+' · all-time total '+fmt(allTime)+'</div>'
+    + '<div class="statgrid">'
+    +   '<div class="stat"><div class="v">'+fmt(s.total)+'</div><div class="l">Sept total</div></div>'
+    +   '<div class="stat"><div class="v">'+fmt(s.best)+'</div><div class="l">Best day'+(s.bestDay?' · '+s.bestDay+'th':'')+'</div></div>'
+    +   '<div class="stat"><div class="v">'+streak(log)+'</div><div class="l">Streak</div></div>'
+    +   '<div class="stat"><div class="v">'+s.tons+'/30</div><div class="l">Ton days</div></div>'
+    + '</div>'
+    + '<div class="mlabel">Daily log · September</div>'
+    + '<div class="cal">'
+    +   s.days.map((v,i)=>{
+        const cls = v>=100 ? ' ton' : (v>0 ? ' part' : '');
+        return '<div class="d'+cls+'">'+(i+1)+'<b>'+(v>0?fmt(v):'·')+'</b></div>';
+      }).join('')
+    + '</div>'
+    + '<div class="mlabel">Achievements</div>'
+    + '<div class="badges">'
+    +   badges.map(b=>'<span class="badge '+(b.on?'on':'off')+'" title="'+b.tip+'">'+b.icon+' '+b.label+'</span>').join('')
+    + '</div>';
+  document.getElementById('modalBack').classList.remove('hidden');
+  document.getElementById('modalClose').addEventListener('click', closePlayer);
+}
+function closePlayer(){ document.getElementById('modalBack').classList.add('hidden'); }
+document.getElementById('modalBack').addEventListener('click', e=>{ if(e.target.id==='modalBack') closePlayer(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closePlayer(); });
 
 function countTo(id, from, to){
   const el=document.getElementById(id);
