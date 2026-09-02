@@ -495,9 +495,9 @@ function showPlayer(id){
   box.innerHTML =
     '<div class="mhead"><h3>'+escapeHtml(m.name||'Player')+'</h3>'
     + '<button class="close" id="modalClose">Close ✕</button></div>'
-    + '<div class="msub">September '+septYear()+' · all-time total '+fmt(allTime)+'</div>'
+    + '<div class="msub">September '+septYear()+' · Sept total '+fmt(s.total)+' · all-time '+fmt(allTime)+'</div>'
     + '<div class="statgrid">'
-    +   '<div class="stat"><div class="v">'+fmt(s.total)+'</div><div class="l">Sept total</div></div>'
+    +   '<div class="stat"><div class="v">'+fmt(Number(log[todayKey()])||0)+'</div><div class="l">Today</div></div>'
     +   '<div class="stat"><div class="v">'+fmt(s.best)+'</div><div class="l">Best day'+(s.bestDay?' · '+s.bestDay+'th':'')+'</div></div>'
     +   '<div class="stat"><div class="v">'+streak(log)+'</div><div class="l">Streak</div></div>'
     +   '<div class="stat"><div class="v">'+s.tons+'/30</div><div class="l">Ton days</div></div>'
