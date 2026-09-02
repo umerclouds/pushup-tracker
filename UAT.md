@@ -3,11 +3,10 @@
 Live site: https://pushup-tracker-production-bfd6.up.railway.app
 Admin: https://pushup-tracker-production-bfd6.up.railway.app/admin (needs the admin token)
 
-> **Heads-up for testing before 1 September:** the leaderboard and team total count
-> **September push-ups only**. Reps you log today (August) will show in "Your day" and in
-> a player's all-time total, but the leaderboard will stay at 0 until the challenge starts.
-> To see the leaderboard working during UAT, use the admin page → **Set day** with a
-> September date (e.g. 2026-09-01) — then remove the test data afterwards.
+> **Heads-up:** the hero team total and the leaderboard show **today's push-ups only** —
+> they visually reset each morning. Progress is shown by the small last-7-days chips under
+> the team total and under each player's name; full September totals live in the player
+> profile (tap a name).
 
 ## 1. Joining
 
@@ -27,8 +26,9 @@ Admin: https://pushup-tracker-production-bfd6.up.railway.app/admin (needs the ad
 
 ## 3. Leaderboard & player profiles
 
-- [ ] Leaderboard sorts highest first, medals for top three, "YOU" tag on your row.
-- [ ] (Sept only / via admin Set day) totals on the board reflect September reps only.
+- [ ] Leaderboard sorts by **today's** count (highest first), medals for top three, "YOU" tag on your row.
+- [ ] Each row shows a small last-7-days strip: teal chips for 1–99 rep days, gold for 100+, dots for 0.
+- [ ] The hero team total counts today only, with the team's last-7-days strip underneath.
 - [ ] Tap any player row → profile modal opens: September calendar, stat tiles, badges.
 - [ ] Days with 1–99 reps show teal, days with 100+ show gold in the calendar.
 - [ ] Badges light up when earned (log 100+ in one September day → "First ton").

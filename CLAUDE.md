@@ -70,8 +70,10 @@ Set `ADMIN_TOKEN` and `DATA_DIR` locally when testing admin endpoints.
    are from the local directory, not the repo.
 
 ## Frontend conventions
-- Leaderboard, hero team total, and the share text count **September push-ups only**
-  (`sumSept`); player profiles also show an all-time total (`sumLog`).
+- Leaderboard, hero team total, and the share text count **today's push-ups only**
+  (log entry for `todayKey()`), with a small last-7-days history strip under the hero
+  and under each leaderboard row. Player profiles show the full September calendar/stats
+  (`sumSept`) plus an all-time total (`sumLog`).
 - Client identity lives in `localStorage` key `pushup-me`; the admin token for the
   session in `sessionStorage` key `pushup-admin-token`.
 - September year = current calendar year (`septYear()` in index.html).

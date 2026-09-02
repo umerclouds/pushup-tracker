@@ -9,7 +9,8 @@ everyone logs their daily push-ups and watches the shared team total climb.
 
 ## Features
 
-- **Shared leaderboard** — September totals for every teammate, medals for the top three.
+- **Shared leaderboard** — today's push-ups for every teammate (medals for the top three),
+  with a small last-7-days history under each name; the hero team total is also today-only.
 - **Daily tracker** — quick-add buttons (+10/+20/+25/+50), custom amounts, daily 100 target
   with progress bar, and a day streak counter.
 - **Player profiles** — tap any name on the leaderboard for their September daily calendar,

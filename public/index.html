@@ -99,6 +99,14 @@
   .name .youtag{font-size:10px; font-weight:700; color:var(--gold); letter-spacing:.1em; margin-left:6px}
   .score{font-family:var(--disp); font-weight:700; font-size:22px; color:var(--ink); font-variant-numeric:tabular-nums}
   .score small{font-family:var(--body); font-size:11px; color:var(--muted); font-weight:500; display:block; text-align:right; margin-top:-2px}
+  .mid{flex:1; min-width:0}
+  .hist{display:flex; gap:4px; margin-top:4px; flex-wrap:wrap}
+  .h{font-size:9.5px; color:#41566e; background:var(--panel2); border:1px solid var(--line);
+    border-radius:6px; padding:1px 5px; font-variant-numeric:tabular-nums; white-space:nowrap}
+  .h.part{color:var(--teal); border-color:rgba(47,211,196,.4)}
+  .h.ton{color:var(--gold); border-color:rgba(245,197,24,.5)}
+  .herohist{display:flex; gap:4px; justify-content:center; flex-wrap:wrap; margin-top:12px}
+  .herohist .h{font-size:10.5px; padding:2px 7px}
   .empty{color:var(--muted); font-size:14px; text-align:center; padding:14px 0}
   .actions{display:flex; gap:10px; margin-top:14px}
   .btn{
@@ -179,9 +187,10 @@
   <!-- DASHBOARD -->
   <main id="dashView" class="hidden">
     <div class="hero">
-      <div class="cap">Team total</div>
+      <div class="cap">Team total · today</div>
       <div class="total" id="teamTotal">0</div>
-      <div class="sub">push-ups, raised together by <b id="memberCount">0</b> teammates</div>
+      <div class="sub">push-ups today from <b id="memberCount">0</b> teammates</div>
+      <div class="herohist" id="teamHist"></div>
       <div class="daychip" id="dayChip">September challenge</div>
     </div>
 
@@ -208,7 +217,7 @@
     </section>
 
     <section class="card">
-      <h2>Leaderboard · September total</h2>
+      <h2>Leaderboard · Today</h2>
       <div id="board"></div>
     </section>
 
@@ -398,15 +407,36 @@ function renderYou(){
   document.getElementById('streakLabel').textContent = streak(log)+' day streak 🔥';
 }
 
+function lastNDays(n){
+  const out=[];
+  for(let i=n;i>=1;i--){ const d=new Date(); d.setDate(d.getDate()-i); out.push(d); }
+  return out;
+}
+function histChips(days, valueOf, showZeroAsDot){
+  return days.map(d=>{
+    const v = valueOf(keyOf(d));
+    const cls = v>=100 ? ' ton' : (v>0 ? ' part' : '');
+    const wd = d.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2);
+    return '<span class="h'+cls+'">'+wd+' '+(v>0?fmt(v):(showZeroAsDot?'·':'0'))+'</span>';
+  }).join('');
+}
+
 let lastTeamTotal = 0;
 function renderBoard(){
-  const people = members.map(m=>({ id:m.id, name:m.name||'Player', total:sumSept(m.log||{}) }));
-  people.sort((a,b)=> b.total-a.total || a.name.localeCompare(b.name));
-  const team = people.reduce((s,p)=>s+p.total,0);
+  const tk = todayKey();
+  const hist = lastNDays(7);
+  const people = members.map(m=>{
+    const log = m.log||{};
+    return { id:m.id, name:m.name||'Player', log, today:Number(log[tk])||0, sept:sumSept(log) };
+  });
+  people.sort((a,b)=> b.today-a.today || b.sept-a.sept || a.name.localeCompare(b.name));
+  const team = people.reduce((s,p)=>s+p.today,0);
 
   document.getElementById('memberCount').textContent = people.length;
   document.getElementById('dayChip').textContent = dayChipText();
   countTo('teamTotal', lastTeamTotal, team); lastTeamTotal = team;
+  document.getElementById('teamHist').innerHTML =
+    histChips(hist, k=>members.reduce((s,m)=>s+(Number((m.log||{})[k])||0),0), true);
 
   const medals = ['🥇','🥈','🥉'];
   const board = document.getElementById('board');
@@ -414,11 +444,13 @@ function renderBoard(){
   board.innerHTML = people.map((p,i)=>{
     const isMe = me && p.id===me.id;
     const rank = i<3 ? medals[i] : (i+1);
-    const days = Math.round(p.total/100);
     return '<div class="row click'+(isMe?' me':'')+'" data-id="'+escapeHtml(p.id)+'">'
       + '<div class="rank">'+rank+'</div>'
-      + '<div class="name">'+escapeHtml(p.name)+(isMe?'<span class="youtag">YOU</span>':'')+'</div>'
-      + '<div class="score">'+fmt(p.total)+'<small>'+ (p.total>=100 ? '≈'+days+' days\' worth' : 'keep going') +'</small></div>'
+      + '<div class="mid">'
+      +   '<div class="name">'+escapeHtml(p.name)+(isMe?'<span class="youtag">YOU</span>':'')+'</div>'
+      +   '<div class="hist">'+histChips(hist, k=>Number(p.log[k])||0, true)+'</div>'
+      + '</div>'
+      + '<div class="score">'+fmt(p.today)+'<small>'+ (p.today>=100 ? 'ton done ✔' : (100-p.today)+' to go') +'</small></div>'
       + '</div>';
   }).join('');
   board.querySelectorAll('.row.click').forEach(r=>{
@@ -503,16 +535,17 @@ function countTo(id, from, to){
 /* ---------- share ---------- */
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   await refresh();
-  const people = members.map(m=>({ name:m.name||'Player', total:sumSept(m.log||{}) }))
+  const tk = todayKey();
+  const people = members.map(m=>({ name:m.name||'Player', total:Number((m.log||{})[tk])||0 }))
                         .sort((a,b)=>b.total-a.total);
   const team = people.reduce((s,p)=>s+p.total,0);
   const top = people.slice(0,5).map((p,i)=>`${i+1}. ${p.name} — ${fmt(p.total)}`).join('\n');
   const text =
 `🏏 TEAM PUSH-UP CHALLENGE ${dayChipText().toUpperCase()}
 
-💪 Team total: ${fmt(team)} push-ups — raised together!
+💪 Team total today: ${fmt(team)} push-ups — raised together!
 
-🏅 Standings:
+🏅 Today's standings:
 ${top || '— get logging! —'}
 
 Log yours 👉 ${location.origin}
