@@ -46,7 +46,9 @@ Admin: https://pushup-tracker-production-bfd6.up.railway.app/admin (needs the ad
 - [ ] `/admin` with a wrong token → "Wrong token."
 - [ ] Correct token → panel unlocks (stays unlocked for the browser session).
 - [ ] **Rename** a member → new name shows on the leaderboard for everyone.
-- [ ] **Set day** → that member's count for that date is overwritten (not added).
+- [ ] **Add** → the amount is added on top of that member's existing count for that date
+      (for logging forgotten days).
+- [ ] **Set** → that member's count for that date is overwritten (not added).
 - [ ] **Remove member** → first tap arms the button, second tap deletes; member disappears.
 - [ ] Main page (`/`) never shows any admin controls.
 

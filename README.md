@@ -18,8 +18,9 @@ everyone logs their daily push-ups and watches the shared team total climb.
   (First ton, 150 club, Perfect week, 1,000/2,000 clubs, Full 3,000).
 - **Fundraising card** — shows the amount raised for CRUK against a target, with a progress
   bar. Figures are updated manually from the admin page.
-- **Admin page** (`/admin`, token-protected) — rename or remove members, correct any day's
-  count, and update the donation figures.
+- **Admin page** (`/admin`, token-protected) — rename or remove members, add missed
+  push-ups to any member's past day (**Add**) or overwrite a day's count (**Set**),
+  and update the donation figures.
 - **WhatsApp share** — one tap shares the current standings.
 
 ## Stack

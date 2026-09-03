@@ -140,7 +140,7 @@ function renderMembers(){
     '<div class="member" data-i="'+i+'">'
     + '<div class="mname">'+esc(m.name)+'<small>'+fmt(sumLog(m.log))+' total · id '+esc(m.id)+'</small></div>'
     + '<div class="fr"><input class="rn" type="text" maxlength="24" placeholder="New name" /><button class="rnb">Rename</button></div>'
-    + '<div class="fr"><input class="dt" type="date" value="'+todayKey()+'" /><input class="ct" type="number" min="0" placeholder="Count" /><button class="sdb">Set day</button></div>'
+    + '<div class="fr"><input class="dt" type="date" value="'+todayKey()+'" /><input class="ct" type="number" min="0" placeholder="Count" /><button class="adb">Add</button><button class="sdb ghost">Set</button></div>'
     + '<div class="fr"><button class="warn rmb">Remove member</button></div>'
     + '</div>'
   ).join('');
@@ -153,11 +153,22 @@ function renderMembers(){
       try{ await api('/api/admin/rename', { id:m.id, name }); say('memMsg','Renamed.', true); await load(); }
       catch(e){ say('memMsg', e.message, false); }
     });
+    /* Add increments that day's count (for missed logs); Set overwrites it */
+    el.querySelector('.adb').addEventListener('click', async ()=>{
+      const date = el.querySelector('.dt').value;
+      const amount = Number(el.querySelector('.ct').value);
+      if(!date || !(amount>0)) return;
+      try{
+        await api('/api/add', { id:m.id, name:m.name, amount, date });
+        say('memMsg','Added '+fmt(amount)+' to '+m.name+' on '+date+'.', true);
+        await load();
+      }catch(e){ say('memMsg', e.message, false); }
+    });
     el.querySelector('.sdb').addEventListener('click', async ()=>{
       const date = el.querySelector('.dt').value;
       const amount = el.querySelector('.ct').value;
       if(!date || amount==='') return;
-      try{ await api('/api/admin/setday', { id:m.id, date, amount:Number(amount) }); say('memMsg','Day updated.', true); await load(); }
+      try{ await api('/api/admin/setday', { id:m.id, date, amount:Number(amount) }); say('memMsg','Day set to '+fmt(Number(amount))+' for '+m.name+'.', true); await load(); }
       catch(e){ say('memMsg', e.message, false); }
     });
     /* remove is two-tap: first tap arms the button, second confirms */
