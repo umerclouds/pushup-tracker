@@ -40,6 +40,19 @@
   .hidden{display:none !important}
   .note{font-size:11px; color:var(--muted); margin-top:12px; line-height:1.6}
   a{color:var(--teal)}
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px}
+  .tile{background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:10px 12px}
+  .tile b{display:block; font-size:20px; color:var(--gold)}
+  .tile span{font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+  .top3{margin:0 0 12px; padding:0; list-style:none}
+  .top3 li{display:flex; justify-content:space-between; padding:6px 0; font-size:14px;
+    border-bottom:1px solid rgba(36,64,91,.5)}
+  .top3 li b{color:var(--teal)}
+  table.sum{width:100%; border-collapse:collapse; font-size:13px}
+  table.sum th{font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+    text-align:right; padding:4px 0; font-weight:600}
+  table.sum th:first-child, table.sum td:first-child{text-align:left}
+  table.sum td{text-align:right; padding:5px 0; border-top:1px solid rgba(36,64,91,.5)}
 </style>
 </head>
 <body>
@@ -54,6 +67,18 @@
 
   <!-- PANEL -->
   <div id="panel" class="hidden">
+    <section class="card">
+      <h2>September summary</h2>
+      <div class="stats" id="sumTiles"></div>
+      <ol class="top3" id="sumTop3"></ol>
+      <table class="sum">
+        <thead><tr><th>Player</th><th>Total</th><th>Days</th><th>Best day</th></tr></thead>
+        <tbody id="sumBody"></tbody>
+      </table>
+      <div class="fr"><button id="copyReport">Copy team update for WhatsApp</button></div>
+      <div class="msg" id="sumMsg"></div>
+    </section>
+
     <section class="card">
       <h2>Fundraising</h2>
       <div class="fr"><label for="fTarget">Target £</label><input id="fTarget" type="number" min="0" step="1" /></div>
@@ -118,8 +143,61 @@ async function load(){
   const d = s.donations || { target:0, raised:0 };
   document.getElementById('fTarget').value = d.target || '';
   document.getElementById('fRaised').value = d.raised || '';
+  renderSummary();
   renderMembers();
 }
+
+/* ---------- summary ---------- */
+function septYear(){ return new Date().getFullYear(); }
+function septStats(){
+  const prefix = septYear()+'-09-';
+  const days = new Set();
+  const rows = members.map(m=>{
+    let total=0, logged=0, best=0;
+    for(const k in (m.log||{})){
+      if(!k.startsWith(prefix)) continue;
+      const n = Number(m.log[k])||0;
+      if(n>0){ total+=n; logged++; days.add(k); if(n>best) best=n; }
+    }
+    return { name:m.name, total, logged, best };
+  }).sort((a,b)=>b.total-a.total);
+  const teamTotal = rows.reduce((t,r)=>t+r.total,0);
+  const activeDays = days.size;
+  return { rows, teamTotal, activeDays, avg: activeDays ? Math.round(teamTotal/activeDays) : 0 };
+}
+function renderSummary(){
+  const s = septStats();
+  document.getElementById('sumTiles').innerHTML =
+    '<div class="tile"><b>'+fmt(s.teamTotal)+'</b><span>Team total</span></div>'
+    + '<div class="tile"><b>'+fmt(s.avg)+'</b><span>Avg / day</span></div>'
+    + '<div class="tile"><b>'+s.activeDays+'</b><span>Days logged</span></div>';
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('sumTop3').innerHTML = s.rows.slice(0,3).map((r,i)=>
+    '<li><span>'+medals[i]+' '+esc(r.name)+'</span><b>'+fmt(r.total)+'</b></li>').join('');
+  document.getElementById('sumBody').innerHTML = s.rows.map(r=>
+    '<tr><td>'+esc(r.name)+'</td><td>'+fmt(r.total)+'</td><td>'+r.logged+'</td><td>'+fmt(r.best)+'</td></tr>').join('');
+}
+document.getElementById('copyReport').addEventListener('click', async ()=>{
+  const s = septStats();
+  const medals = ['🥇','🥈','🥉'];
+  const lines = [
+    '💪 *Team Push-Up Challenge — September update*',
+    '',
+    '🔥 Team total: *'+fmt(s.teamTotal)+'* push-ups in '+s.activeDays+' days (avg '+fmt(s.avg)+'/day)',
+    '',
+    '🏆 Top 3:',
+    ...s.rows.slice(0,3).map((r,i)=> medals[i]+' '+r.name+' — '+fmt(r.total)),
+    '',
+    '📊 Everyone so far:',
+    ...s.rows.map(r=> '• '+r.name+' — '+fmt(r.total)),
+    '',
+    'Keep pushing team, every rep counts! 👊'
+  ];
+  try{
+    await navigator.clipboard.writeText(lines.join('\n'));
+    say('sumMsg','Copied — paste it into WhatsApp.', true);
+  }catch(e){ say('sumMsg','Copy failed — long-press to select instead.', false); }
+});
 
 /* ---------- fundraising ---------- */
 document.getElementById('fundSave').addEventListener('click', async ()=>{
