@@ -1,26 +1,27 @@
-# 🏏 Team Push-Up Challenge Tracker
+# 🏏 Triple-50 October Challenge Tracker
 
-A shared push-up tracker for a cricket team doing the **Cancer Research UK
-"100 push-ups a day in September"** challenge. One public link, no logins:
-everyone logs their daily push-ups and watches the shared team total climb.
+A shared exercise tracker for a cricket team's **October Triple-50 challenge**:
+**50 push-ups, 50 squats and 50 core reps — every day**. More than 50 is welcome;
+50 per exercise is the daily minimum. One public link, no logins: everyone logs
+their daily reps and watches the shared team total climb.
 
-**Live:** https://pushup-tracker-production-bfd6.up.railway.app
-**Admin:** https://pushup-tracker-production-bfd6.up.railway.app/admin
+> The live and admin URLs are private to the team — see `ADMIN-ACCESS.md` (not committed).
 
 ## Features
 
-- **Shared leaderboard** — today's push-ups for every teammate (medals for the top three),
-  with a small last-7-days history under each name; the hero team total is also today-only.
-- **Daily tracker** — quick-add buttons (+10/+20/+25/+50), custom amounts, daily 100 target
-  with progress bar, and a day streak counter.
-- **Player profiles** — tap any name on the leaderboard for their September daily calendar,
-  stats (Sept total, best day, streak, ton days) and achievement badges
-  (First ton, 150 club, Perfect week, 1,000/2,000 clubs, Full 3,000).
-- **Fundraising card** — shows the amount raised for CRUK against a target, with a progress
-  bar. Figures are updated manually from the admin page.
-- **Admin page** (`/admin`, token-protected) — rename or remove members, add missed
-  push-ups to any member's past day (**Add**) or overwrite a day's count (**Set**),
-  and update the donation figures.
+- **Shared leaderboard** — ranked by **targets hit today (0–3)**, then total reps.
+  Each row shows per-exercise chips (💪 🦵 🧘, gold ✓ at 50+) and today's reps;
+  medals for the top three.
+- **Daily tracker** — three exercise cards, each with a 50-rep progress bar,
+  quick-add buttons (+10/+25/+50) and a custom amount. Three target dots show
+  how much of the day is done; a streak counter tracks consecutive active days.
+- **Player profiles** — tap any name for their October calendar (gold = all 3
+  targets hit), stat tiles (targets today, best day, streak, full days),
+  per-exercise totals and achievement badges (First triple, Century, Perfect
+  week, 1,500/3,000 clubs, Full 4,650).
+- **Admin page** (`/admin`, token-protected) — rename or remove members, add
+  missed reps to any member's past day (**Add**) or overwrite a whole day
+  (**Set**), plus an October summary table and a copyable WhatsApp team update.
 - **WhatsApp share** — one tap shares the current standings.
 
 ## Stack
@@ -31,12 +32,29 @@ everyone logs their daily push-ups and watches the shared team total climb.
 - `public/admin.html` — the admin page, also a single file.
 - Node >= 18, one dependency (`express`).
 
+## Data model (v2)
+
+```json
+{
+  "version": 2,
+  "members": {
+    "player-id": {
+      "name": "Player",
+      "log": { "2026-10-01": { "pushups": 50, "squats": 50, "core": 50 } }
+    }
+  }
+}
+```
+
+A v1 (September) `db.json` found on startup is archived to
+`db-september-archive.json` and the app starts with an empty roster.
+
 ## Run locally
 
 ```bash
 npm install
 npm start                      # listens on $PORT (default 3000)
-curl localhost:3000/api/state  # {"members":[],"donations":{...}}
+curl localhost:3000/api/state  # {"members":[],"exercises":[...],"target":50}
 ```
 
 Environment variables:
@@ -51,22 +69,23 @@ Environment variables:
 
 Public:
 
-| Endpoint          | Method | Body                          | Notes                        |
-|-------------------|--------|-------------------------------|------------------------------|
-| `/api/state`      | GET    | —                             | `{ members, donations }`     |
-| `/api/join`       | POST   | `{ id?, name }`               | Creates/updates a member     |
-| `/api/add`        | POST   | `{ id, name, amount, date }`  | Increments that day's count  |
-| `/api/reset`      | POST   | `{ id, date }`                | Zeroes that day              |
+| Endpoint     | Method | Body                                    | Notes                                  |
+|--------------|--------|-----------------------------------------|----------------------------------------|
+| `/api/state` | GET    | —                                       | `{ members, exercises, target }`       |
+| `/api/join`  | POST   | `{ id?, name }`                         | Creates/updates a member               |
+| `/api/add`   | POST   | `{ id, name, exercise, amount, date }`  | Increments one exercise for that day   |
+| `/api/reset` | POST   | `{ id, date, exercise? }`               | Zeroes the day (or one exercise)       |
+
+`exercise` is one of `pushups`, `squats`, `core`.
 
 Admin — all require the `x-admin-token` header matching `ADMIN_TOKEN`:
 
-| Endpoint               | Body                       | Purpose                       |
-|------------------------|----------------------------|-------------------------------|
-| `/api/admin/verify`    | `{}`                       | Token check                   |
-| `/api/admin/rename`    | `{ id, name }`             | Rename a member               |
-| `/api/admin/remove`    | `{ id }`                   | Delete a member entirely      |
-| `/api/admin/setday`    | `{ id, date, amount }`     | Set (not add) a day's count   |
-| `/api/admin/donations` | `{ target, raised }`       | Update fundraising figures    |
+| Endpoint            | Body                                   | Purpose                            |
+|---------------------|----------------------------------------|------------------------------------|
+| `/api/admin/verify` | `{}`                                   | Token check                        |
+| `/api/admin/rename` | `{ id, name }`                         | Rename a member                    |
+| `/api/admin/remove` | `{ id }`                               | Delete a member entirely           |
+| `/api/admin/setday` | `{ id, date, pushups, squats, core }`  | Set (not add) a whole day          |
 
 ## Deployment (Railway)
 

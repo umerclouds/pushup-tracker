@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
-<title>Admin · Team Push-Up Challenge</title>
+<title>Admin · Triple-50 October Challenge</title>
 <style>
   :root{
     --bg:#0B1622; --panel:#132538; --panel2:#0F1E2E; --line:#24405B;
@@ -31,6 +31,8 @@
   button.ghost{background:transparent; border:1px solid var(--line); color:var(--muted)}
   .fr{display:flex; gap:8px; margin-top:8px; align-items:center}
   .fr label{font-size:12px; color:var(--muted); min-width:86px}
+  .fr input.sm{width:70px; flex:0 0 auto; text-align:center; padding:10px 4px}
+  .fr .exl{font-size:11px; color:var(--muted); flex:0 0 auto}
   .member{border-top:1px solid rgba(36,64,91,.5); padding:12px 0}
   .member:first-of-type{border-top:none; padding-top:0}
   .mname{font-weight:700; font-size:15px; display:flex; justify-content:space-between; align-items:center; gap:8px}
@@ -56,7 +58,7 @@
 </style>
 </head>
 <body>
-  <h1>🛠️ Challenge Admin <small>Team push-up tracker</small></h1>
+  <h1>🛠️ Challenge Admin <small>Triple-50 October tracker</small></h1>
 
   <!-- GATE -->
   <section class="card" id="gate">
@@ -68,11 +70,11 @@
   <!-- PANEL -->
   <div id="panel" class="hidden">
     <section class="card">
-      <h2>September summary</h2>
+      <h2>October summary</h2>
       <div class="stats" id="sumTiles"></div>
       <ol class="top3" id="sumTop3"></ol>
       <table class="sum">
-        <thead><tr><th>Player</th><th>Total</th><th>Days</th><th>Best day</th></tr></thead>
+        <thead><tr><th>Player</th><th>Reps</th><th>💪</th><th>🦵</th><th>🧘</th><th>Full days</th></tr></thead>
         <tbody id="sumBody"></tbody>
       </table>
       <div class="fr"><button id="copyReport">Copy team update for WhatsApp</button></div>
@@ -80,20 +82,11 @@
     </section>
 
     <section class="card">
-      <h2>Fundraising</h2>
-      <div class="fr"><label for="fTarget">Target £</label><input id="fTarget" type="number" min="0" step="1" /></div>
-      <div class="fr"><label for="fRaised">Raised £</label><input id="fRaised" type="number" min="0" step="0.01" /></div>
-      <div class="fr"><button id="fundSave">Save donation figures</button></div>
-      <div class="msg" id="fundMsg"></div>
-      <div class="note">Check the amount raised on the
-        <a href="https://fundraise.cancerresearchuk.org/page/100-push-ups-a-day-in-september-challenge-7185" target="_blank" rel="noopener">CRUK page</a>
-        and update it here — it shows on everyone's dashboard.</div>
-    </section>
-
-    <section class="card">
       <h2>Members</h2>
       <div id="memberList"></div>
       <div class="msg" id="memMsg"></div>
+      <div class="note">“Add” increments that day's counts (for missed logs); “Set” overwrites the whole day
+        with exactly what's in the three boxes (blank = 0).</div>
     </section>
 
     <div class="note" style="text-align:center">
@@ -103,6 +96,12 @@
 
 <script>
 const TK = 'pushup-admin-token';
+const TARGET = 50;
+const EX = [
+  { key:'pushups', label:'💪' },
+  { key:'squats',  label:'🦵' },
+  { key:'core',    label:'🧘' },
+];
 let token = sessionStorage.getItem(TK) || '';
 let members = [];
 
@@ -115,7 +114,15 @@ async function api(pathname, body){
   return data;
 }
 function fmt(n){ return (Number(n)||0).toLocaleString('en-GB'); }
-function sumLog(log){ let t=0; for(const k in log){ t+=Number(log[k])||0; } return t; }
+function dayOf(log, k){
+  const raw = (log||{})[k];
+  const o = {};
+  EX.forEach(e=>{ o[e.key] = Math.max(0, Math.floor(Number(raw && raw[e.key])||0)); });
+  return o;
+}
+function dayTotal(day){ return EX.reduce((s,e)=>s+day[e.key],0); }
+function targetsHit(day){ return EX.reduce((s,e)=>s+(day[e.key]>=TARGET?1:0),0); }
+function sumLog(log){ let t=0; for(const k in (log||{})){ t+=dayTotal(dayOf(log,k)); } return t; }
 function todayKey(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function say(id, text, ok){ const el=document.getElementById(id); el.textContent=text; el.className='msg '+(ok?'ok':'err');
@@ -140,74 +147,65 @@ document.getElementById('tokenInput').addEventListener('keydown', e=>{ if(e.key=
 async function load(){
   const s = await api('/api/state');
   members = s.members || [];
-  const d = s.donations || { target:0, raised:0 };
-  document.getElementById('fTarget').value = d.target || '';
-  document.getElementById('fRaised').value = d.raised || '';
   renderSummary();
   renderMembers();
 }
 
 /* ---------- summary ---------- */
-function septYear(){ return new Date().getFullYear(); }
-function septStats(){
-  const prefix = septYear()+'-09-';
-  const days = new Set();
+function octYear(){ return new Date().getFullYear(); }
+function octStats(){
+  const prefix = octYear()+'-10-';
+  const activeDays = new Set();
   const rows = members.map(m=>{
-    let total=0, logged=0, best=0;
+    let total=0, fullDays=0, logged=0;
+    const perEx = { pushups:0, squats:0, core:0 };
     for(const k in (m.log||{})){
       if(!k.startsWith(prefix)) continue;
-      const n = Number(m.log[k])||0;
-      if(n>0){ total+=n; logged++; days.add(k); if(n>best) best=n; }
+      const day = dayOf(m.log, k);
+      const t = dayTotal(day);
+      if(t>0){ total+=t; logged++; activeDays.add(k); }
+      if(targetsHit(day)===3) fullDays++;
+      EX.forEach(e=>{ perEx[e.key]+=day[e.key]; });
     }
-    return { name:m.name, total, logged, best };
-  }).sort((a,b)=>b.total-a.total);
+    return { name:m.name, total, logged, fullDays, perEx };
+  }).sort((a,b)=> b.fullDays-a.fullDays || b.total-a.total);
   const teamTotal = rows.reduce((t,r)=>t+r.total,0);
-  const activeDays = days.size;
-  return { rows, teamTotal, activeDays, avg: activeDays ? Math.round(teamTotal/activeDays) : 0 };
+  const teamFullDays = rows.reduce((t,r)=>t+r.fullDays,0);
+  return { rows, teamTotal, teamFullDays, activeDays:activeDays.size };
 }
 function renderSummary(){
-  const s = septStats();
+  const s = octStats();
   document.getElementById('sumTiles').innerHTML =
-    '<div class="tile"><b>'+fmt(s.teamTotal)+'</b><span>Team total</span></div>'
-    + '<div class="tile"><b>'+fmt(s.avg)+'</b><span>Avg / day</span></div>'
+    '<div class="tile"><b>'+fmt(s.teamTotal)+'</b><span>Team reps</span></div>'
+    + '<div class="tile"><b>'+fmt(s.teamFullDays)+'</b><span>Full days (3/3)</span></div>'
     + '<div class="tile"><b>'+s.activeDays+'</b><span>Days logged</span></div>';
   const medals = ['🥇','🥈','🥉'];
   document.getElementById('sumTop3').innerHTML = s.rows.slice(0,3).map((r,i)=>
-    '<li><span>'+medals[i]+' '+esc(r.name)+'</span><b>'+fmt(r.total)+'</b></li>').join('');
+    '<li><span>'+medals[i]+' '+esc(r.name)+'</span><b>'+r.fullDays+' full days · '+fmt(r.total)+'</b></li>').join('');
   document.getElementById('sumBody').innerHTML = s.rows.map(r=>
-    '<tr><td>'+esc(r.name)+'</td><td>'+fmt(r.total)+'</td><td>'+r.logged+'</td><td>'+fmt(r.best)+'</td></tr>').join('');
+    '<tr><td>'+esc(r.name)+'</td><td>'+fmt(r.total)+'</td><td>'+fmt(r.perEx.pushups)+'</td>'
+    + '<td>'+fmt(r.perEx.squats)+'</td><td>'+fmt(r.perEx.core)+'</td><td>'+r.fullDays+'</td></tr>').join('');
 }
 document.getElementById('copyReport').addEventListener('click', async ()=>{
-  const s = septStats();
+  const s = octStats();
   const medals = ['🥇','🥈','🥉'];
   const lines = [
-    '💪 *Team Push-Up Challenge — September update*',
+    '💪 *Triple-50 October Challenge — team update*',
     '',
-    '🔥 Team total: *'+fmt(s.teamTotal)+'* push-ups in '+s.activeDays+' days (avg '+fmt(s.avg)+'/day)',
+    '🔥 Team total: *'+fmt(s.teamTotal)+'* reps · '+fmt(s.teamFullDays)+' full days (all 3 targets)',
     '',
     '🏆 Top 3:',
-    ...s.rows.slice(0,3).map((r,i)=> medals[i]+' '+r.name+' — '+fmt(r.total)),
+    ...s.rows.slice(0,3).map((r,i)=> medals[i]+' '+r.name+' — '+r.fullDays+' full days · '+fmt(r.total)+' reps'),
     '',
     '📊 Everyone so far:',
-    ...s.rows.map(r=> '• '+r.name+' — '+fmt(r.total)),
+    ...s.rows.map(r=> '• '+r.name+' — '+fmt(r.total)+' reps ('+r.fullDays+' full days)'),
     '',
-    'Keep pushing team, every rep counts! 👊'
+    'Keep pushing team — 50 push-ups, 50 squats, 50 core, every day! 👊'
   ];
   try{
     await navigator.clipboard.writeText(lines.join('\n'));
     say('sumMsg','Copied — paste it into WhatsApp.', true);
   }catch(e){ say('sumMsg','Copy failed — long-press to select instead.', false); }
-});
-
-/* ---------- fundraising ---------- */
-document.getElementById('fundSave').addEventListener('click', async ()=>{
-  try{
-    await api('/api/admin/donations', {
-      target: Number(document.getElementById('fTarget').value)||0,
-      raised: Number(document.getElementById('fRaised').value)||0
-    });
-    say('fundMsg','Saved — live on the dashboard.', true);
-  }catch(e){ say('fundMsg', e.message, false); }
 });
 
 /* ---------- members ---------- */
@@ -216,38 +214,51 @@ function renderMembers(){
   if(members.length===0){ list.innerHTML='<div class="note">Nobody has joined yet.</div>'; return; }
   list.innerHTML = members.map((m,i)=>
     '<div class="member" data-i="'+i+'">'
-    + '<div class="mname">'+esc(m.name)+'<small>'+fmt(sumLog(m.log))+' total · id '+esc(m.id)+'</small></div>'
+    + '<div class="mname">'+esc(m.name)+'<small>'+fmt(sumLog(m.log))+' reps · id '+esc(m.id)+'</small></div>'
     + '<div class="fr"><input class="rn" type="text" maxlength="24" placeholder="New name" /><button class="rnb">Rename</button></div>'
-    + '<div class="fr"><input class="dt" type="date" value="'+todayKey()+'" /><input class="ct" type="number" min="0" placeholder="Count" /><button class="adb">Add</button><button class="sdb ghost">Set</button></div>'
-    + '<div class="fr"><button class="warn rmb">Remove member</button></div>'
+    + '<div class="fr"><input class="dt" type="date" value="'+todayKey()+'" />'
+    +   '<span class="exl">💪</span><input class="sm vp" type="number" min="0" placeholder="0" />'
+    +   '<span class="exl">🦵</span><input class="sm vs" type="number" min="0" placeholder="0" />'
+    +   '<span class="exl">🧘</span><input class="sm vc" type="number" min="0" placeholder="0" /></div>'
+    + '<div class="fr"><button class="adb">Add to day</button><button class="sdb ghost">Set day</button>'
+    +   '<button class="warn rmb" style="margin-left:auto">Remove member</button></div>'
     + '</div>'
   ).join('');
 
   list.querySelectorAll('.member').forEach(el=>{
     const m = members[Number(el.dataset.i)];
+    const vals = ()=>({
+      date: el.querySelector('.dt').value,
+      pushups: Number(el.querySelector('.vp').value)||0,
+      squats:  Number(el.querySelector('.vs').value)||0,
+      core:    Number(el.querySelector('.vc').value)||0,
+    });
     el.querySelector('.rnb').addEventListener('click', async ()=>{
       const name = el.querySelector('.rn').value.trim();
       if(!name) return;
       try{ await api('/api/admin/rename', { id:m.id, name }); say('memMsg','Renamed.', true); await load(); }
       catch(e){ say('memMsg', e.message, false); }
     });
-    /* Add increments that day's count (for missed logs); Set overwrites it */
+    /* Add increments each non-zero exercise for that day; Set overwrites the whole day */
     el.querySelector('.adb').addEventListener('click', async ()=>{
-      const date = el.querySelector('.dt').value;
-      const amount = Number(el.querySelector('.ct').value);
-      if(!date || !(amount>0)) return;
+      const v = vals();
+      if(!v.date || (v.pushups<=0 && v.squats<=0 && v.core<=0)) return;
       try{
-        await api('/api/add', { id:m.id, name:m.name, amount, date });
-        say('memMsg','Added '+fmt(amount)+' to '+m.name+' on '+date+'.', true);
+        for(const e of EX){
+          if(v[e.key]>0) await api('/api/add', { id:m.id, name:m.name, exercise:e.key, amount:v[e.key], date:v.date });
+        }
+        say('memMsg','Added to '+m.name+' on '+v.date+'.', true);
         await load();
       }catch(e){ say('memMsg', e.message, false); }
     });
     el.querySelector('.sdb').addEventListener('click', async ()=>{
-      const date = el.querySelector('.dt').value;
-      const amount = el.querySelector('.ct').value;
-      if(!date || amount==='') return;
-      try{ await api('/api/admin/setday', { id:m.id, date, amount:Number(amount) }); say('memMsg','Day set to '+fmt(Number(amount))+' for '+m.name+'.', true); await load(); }
-      catch(e){ say('memMsg', e.message, false); }
+      const v = vals();
+      if(!v.date) return;
+      try{
+        await api('/api/admin/setday', { id:m.id, date:v.date, pushups:v.pushups, squats:v.squats, core:v.core });
+        say('memMsg','Day set for '+m.name+' ('+v.pushups+'/'+v.squats+'/'+v.core+').', true);
+        await load();
+      }catch(e){ say('memMsg', e.message, false); }
     });
     /* remove is two-tap: first tap arms the button, second confirms */
     const rm = el.querySelector('.rmb');

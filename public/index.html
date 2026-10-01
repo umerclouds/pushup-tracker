@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Team Push-Up Challenge</title>
+<title>Triple-50 October Challenge</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -47,6 +47,10 @@
   }
   .hero .sub{font-size:13px; color:var(--muted)}
   .hero .sub b{color:var(--ink); font-weight:600}
+  .herobreak{display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:12px}
+  .herobreak .bk{font-size:11.5px; color:var(--muted); background:var(--panel2);
+    border:1px solid var(--line); border-radius:999px; padding:3px 10px; font-variant-numeric:tabular-nums}
+  .herobreak .bk b{color:var(--ink); font-weight:600}
   .daychip{
     display:inline-block; margin-top:12px; padding:5px 12px; border-radius:999px;
     background:rgba(47,211,196,.12); border:1px solid rgba(47,211,196,.35);
@@ -60,36 +64,40 @@
     font-family:var(--body); font-size:12px; font-weight:700; letter-spacing:.12em;
     text-transform:uppercase; color:var(--muted); margin:0 0 12px;
   }
-  .youtop{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
-  .youtop .num{font-family:var(--disp); font-weight:700; font-size:40px; color:var(--ink); line-height:1; font-variant-numeric:tabular-nums}
+  .youtop{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:4px}
   .youtop .goal{font-size:13px; color:var(--muted)}
-  .bar{height:12px; border-radius:999px; background:#0c1a28; border:1px solid var(--line); overflow:hidden; margin:12px 0 4px}
+  .tdots{display:inline-flex; gap:5px; margin-right:6px; vertical-align:middle}
+  .tdots i{width:10px; height:10px; border-radius:50%; background:#0c1a28; border:1px solid var(--line); display:inline-block}
+  .tdots i.on{background:var(--gold); border-color:var(--gold); box-shadow:0 0 8px rgba(245,197,24,.5)}
+  .ex{border-top:1px solid rgba(36,64,91,.5); padding:12px 0 14px}
+  .ex:first-of-type{border-top:none; padding-top:4px}
+  .extop{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+  .extop .exname{font-weight:700; font-size:14px}
+  .extop .exnum{font-family:var(--disp); font-weight:700; font-size:28px; line-height:1; font-variant-numeric:tabular-nums}
+  .extop .exnum small{font-family:var(--body); font-size:12px; color:var(--muted); font-weight:500}
+  .extop .exnum.hit{color:var(--gold)}
+  .bar{height:10px; border-radius:999px; background:#0c1a28; border:1px solid var(--line); overflow:hidden; margin:9px 0 4px}
   .bar>span{display:block; height:100%; width:0; border-radius:999px;
     background:linear-gradient(90deg,var(--teal),var(--good)); transition:width .5s cubic-bezier(.2,.7,.2,1)}
   .bar.done>span{background:linear-gradient(90deg,var(--gold),#ffdf6b)}
   .barnote{font-size:12px; color:var(--muted)}
   .barnote b{color:var(--good)}
-  .quick{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
+  .quick{display:flex; gap:7px; margin-top:10px}
   .quick button{
-    flex:1 1 0; min-width:62px; padding:11px 6px; border-radius:12px; cursor:pointer;
+    flex:0 0 auto; min-width:56px; padding:10px 8px; border-radius:11px; cursor:pointer;
     background:#16283d; border:1px solid var(--line); color:var(--ink);
-    font-family:var(--disp); font-weight:700; font-size:19px; letter-spacing:.02em;
+    font-family:var(--disp); font-weight:700; font-size:17px; letter-spacing:.02em;
     transition:transform .08s ease, background .15s ease, border-color .15s ease;
   }
   .quick button:hover{background:#1d3651; border-color:#38618a}
   .quick button:active{transform:scale(.94)}
-  .custom{display:flex; gap:8px; margin-top:10px}
-  .custom input{
-    flex:1; padding:11px 12px; border-radius:12px; background:#0c1a28;
-    border:1px solid var(--line); color:var(--ink); font-family:var(--body); font-size:15px;
+  .quick input{
+    flex:1 1 60px; min-width:0; padding:10px; border-radius:11px; background:#0c1a28;
+    border:1px solid var(--line); color:var(--ink); font-family:var(--body); font-size:14px;
   }
-  .custom input:focus{outline:2px solid var(--teal); outline-offset:1px}
-  .custom .add{
-    padding:0 18px; border-radius:12px; cursor:pointer; border:none;
-    background:var(--teal); color:#04211d; font-weight:700; font-size:14px;
-  }
-  .custom .add:active{transform:scale(.96)}
-  .undo{background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer; margin-top:10px; text-decoration:underline; padding:0}
+  .quick input:focus{outline:2px solid var(--teal); outline-offset:1px}
+  .quick .add{background:var(--teal); border:none; color:#04211d; font-family:var(--body); font-weight:700; font-size:13px; min-width:52px}
+  .undo{background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer; margin-top:8px; text-decoration:underline; padding:0}
   .row{display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid rgba(36,64,91,.5)}
   .row:last-child{border-bottom:none}
   .rank{font-family:var(--disp); font-weight:700; font-size:20px; color:var(--muted); width:30px; text-align:center; font-variant-numeric:tabular-nums}
@@ -97,14 +105,20 @@
   .row.me .name{color:var(--gold)}
   .name{flex:1; font-weight:600; font-size:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .name .youtag{font-size:10px; font-weight:700; color:var(--gold); letter-spacing:.1em; margin-left:6px}
-  .score{font-family:var(--disp); font-weight:700; font-size:22px; color:var(--ink); font-variant-numeric:tabular-nums}
+  .score{font-family:var(--disp); font-weight:700; font-size:22px; color:var(--ink); font-variant-numeric:tabular-nums; text-align:right}
+  .score.full{color:var(--gold)}
   .score small{font-family:var(--body); font-size:11px; color:var(--muted); font-weight:500; display:block; text-align:right; margin-top:-2px}
   .mid{flex:1; min-width:0}
-  .hist{display:flex; gap:4px; margin-top:4px; flex-wrap:wrap}
+  .exchips{display:flex; gap:4px; margin-top:4px; flex-wrap:wrap}
+  .exchip{font-size:9.5px; color:#41566e; background:var(--panel2); border:1px solid var(--line);
+    border-radius:6px; padding:1px 5px; font-variant-numeric:tabular-nums; white-space:nowrap}
+  .exchip.part{color:var(--teal); border-color:rgba(47,211,196,.4)}
+  .exchip.hit{color:var(--gold); border-color:rgba(245,197,24,.5)}
+  .hist{display:flex; gap:4px; flex-wrap:wrap}
   .h{font-size:9.5px; color:#41566e; background:var(--panel2); border:1px solid var(--line);
     border-radius:6px; padding:1px 5px; font-variant-numeric:tabular-nums; white-space:nowrap}
   .h.part{color:var(--teal); border-color:rgba(47,211,196,.4)}
-  .h.ton{color:var(--gold); border-color:rgba(245,197,24,.5)}
+  .h.full{color:var(--gold); border-color:rgba(245,197,24,.5)}
   .herohist{display:flex; gap:4px; justify-content:center; flex-wrap:wrap; margin-top:12px}
   .herohist .h{font-size:10.5px; padding:2px 7px}
   .empty{color:var(--muted); font-size:14px; text-align:center; padding:14px 0}
@@ -115,7 +129,6 @@
     display:flex; align-items:center; justify-content:center; gap:8px;
   }
   .btn.share{background:#25D366; color:#04250f}
-  .btn.donate{background:var(--pink); color:#fff}
   .btn:active{transform:scale(.98)}
   .refresh{display:block; width:100%; margin-top:12px; background:none; border:1px solid var(--line);
     color:var(--muted); padding:10px; border-radius:12px; cursor:pointer; font-size:13px; font-weight:600}
@@ -124,6 +137,10 @@
   .join{background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:26px 20px; text-align:center; margin-top:14px}
   .join h1{font-family:var(--disp); font-weight:800; font-size:34px; margin:0 0 6px; letter-spacing:.5px}
   .join p{color:var(--muted); font-size:14px; margin:0 auto 18px; max-width:340px}
+  .join .trio{display:flex; gap:8px; justify-content:center; margin-bottom:18px}
+  .join .trio .t{flex:1; max-width:110px; background:var(--panel2); border:1px solid var(--line); border-radius:14px; padding:10px 6px}
+  .join .trio .t b{display:block; font-family:var(--disp); font-weight:800; font-size:26px; color:var(--gold)}
+  .join .trio .t span{font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
   .join input{width:100%; padding:14px; border-radius:14px; background:#0c1a28; border:1px solid var(--line); color:var(--ink); font-size:16px; text-align:center; margin-bottom:12px}
   .join input:focus{outline:2px solid var(--gold); outline-offset:1px}
   .join .go{width:100%; padding:15px; border-radius:14px; border:none; background:var(--gold); color:#1a1400; font-weight:800; font-size:16px; font-family:var(--disp); letter-spacing:.04em; cursor:pointer}
@@ -137,10 +154,6 @@
   .join .or{display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; margin-bottom:12px}
   .join .or::before,.join .or::after{content:''; flex:1; height:1px; background:var(--line)}
   .hidden{display:none !important}
-  .bar.fund>span{background:linear-gradient(90deg,var(--pink),#ff7eb0)}
-  .fundtop{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
-  .fundtop .num{font-family:var(--disp); font-weight:700; font-size:34px; color:var(--pink); line-height:1; font-variant-numeric:tabular-nums}
-  .fundtop .goal{font-size:13px; color:var(--muted)}
   .row.click{cursor:pointer}
   .row.click:hover{background:rgba(47,211,196,.06); border-radius:10px}
   .modal-back{position:fixed; inset:0; background:rgba(4,10,17,.72); display:flex; align-items:center; justify-content:center; padding:16px; z-index:50}
@@ -150,15 +163,16 @@
   .modal .msub{font-size:12px; color:var(--muted); margin-bottom:10px}
   .modal .close{background:none; border:1px solid var(--line); color:var(--muted); border-radius:10px; padding:6px 12px; cursor:pointer; font-size:13px}
   .statgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:10px 0 4px}
+  .statgrid.three{grid-template-columns:repeat(3,1fr)}
   .stat{background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:8px 4px; text-align:center}
   .stat .v{font-family:var(--disp); font-weight:700; font-size:21px; font-variant-numeric:tabular-nums}
   .stat .l{font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-top:2px}
   .mlabel{font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:14px 0 8px}
-  .cal{display:grid; grid-template-columns:repeat(6,1fr); gap:6px}
+  .cal{display:grid; grid-template-columns:repeat(7,1fr); gap:5px}
   .cal .d{background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:5px 2px; text-align:center; font-size:10px; color:var(--muted)}
-  .cal .d b{display:block; font-family:var(--disp); font-weight:700; font-size:15px; color:#41566e; font-variant-numeric:tabular-nums}
+  .cal .d b{display:block; font-family:var(--disp); font-weight:700; font-size:14px; color:#41566e; font-variant-numeric:tabular-nums}
   .cal .d.part{border-color:rgba(47,211,196,.5)} .cal .d.part b{color:var(--teal)}
-  .cal .d.ton{border-color:rgba(245,197,24,.6); background:rgba(245,197,24,.08)} .cal .d.ton b{color:var(--gold)}
+  .cal .d.full{border-color:rgba(245,197,24,.6); background:rgba(245,197,24,.08)} .cal .d.full b{color:var(--gold)}
   .badges{display:flex; flex-wrap:wrap; gap:8px}
   .badge{display:inline-flex; align-items:center; gap:6px; background:var(--panel2); border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600}
   .badge.on{border-color:rgba(245,197,24,.55)}
@@ -168,12 +182,17 @@
 </head>
 <body>
 
-  <div class="eyebrow">Cancer Research UK · September · <b>Raising it together</b></div>
+  <div class="eyebrow">October · Push-ups · Squats · Core · <b>50 each, every day</b></div>
 
   <!-- JOIN -->
   <section id="joinView" class="join hidden">
-    <h1>Join the challenge</h1>
-    <p>100 push-ups a day, all September. Log yours here and watch the team total climb. Pop your name in to get started.</p>
+    <h1>Triple-50 Challenge</h1>
+    <p>50 push-ups, 50 squats and 50 core reps — every day in October. Do more if you like; 50 is the minimum. Log here, team sees everything.</p>
+    <div class="trio">
+      <div class="t"><b>50</b><span>Push-ups</span></div>
+      <div class="t"><b>50</b><span>Squats</span></div>
+      <div class="t"><b>50</b><span>Core</span></div>
+    </div>
     <div id="returning" class="hidden">
       <div class="pickcap">Already joined? Tap your name</div>
       <div class="picks" id="pickList"></div>
@@ -187,33 +206,22 @@
   <!-- DASHBOARD -->
   <main id="dashView" class="hidden">
     <div class="hero">
-      <div class="cap">Team total · today</div>
+      <div class="cap">Team reps · today</div>
       <div class="total" id="teamTotal">0</div>
-      <div class="sub">push-ups today from <b id="memberCount">0</b> teammates</div>
+      <div class="sub">reps today from <b id="memberCount">0</b> teammates</div>
+      <div class="herobreak" id="teamBreak"></div>
       <div class="herohist" id="teamHist"></div>
-      <div class="daychip" id="dayChip">September challenge</div>
+      <div class="daychip" id="dayChip">October challenge</div>
     </div>
 
     <section class="card">
       <h2>Your day · <span id="todayDate"></span></h2>
       <div class="youtop">
-        <div class="num"><span id="todayCount">0</span> <span class="goal">/ 100</span></div>
+        <div class="goal"><span class="tdots" id="targetDots"><i></i><i></i><i></i></span><span id="targetLabel">0/3 targets</span></div>
         <div class="goal" id="streakLabel">0 day streak</div>
       </div>
-      <div class="bar" id="todayBar"><span></span></div>
-      <div class="barnote" id="barNote">100 to go today</div>
-
-      <div class="quick">
-        <button data-add="10">+10</button>
-        <button data-add="20">+20</button>
-        <button data-add="25">+25</button>
-        <button data-add="50">+50</button>
-      </div>
-      <div class="custom">
-        <input id="customInput" type="number" inputmode="numeric" min="1" placeholder="Add a custom amount" />
-        <button class="add" id="customBtn">Add</button>
-      </div>
-      <button class="undo" id="resetToday">Reset today</button>
+      <div id="exList"></div>
+      <button class="undo" id="resetToday">Reset today (all three)</button>
     </section>
 
     <section class="card">
@@ -221,24 +229,13 @@
       <div id="board"></div>
     </section>
 
-    <section class="card hidden" id="fundCard">
-      <h2>Fundraising · Cancer Research UK</h2>
-      <div class="fundtop">
-        <div class="num" id="fundRaised">£0</div>
-        <div class="goal" id="fundTarget"></div>
-      </div>
-      <div class="bar fund" id="fundBar"><span></span></div>
-      <div class="barnote" id="fundNote"></div>
-    </section>
-
     <div class="actions">
       <button class="btn share" id="shareBtn">📣 Share standings</button>
-      <a class="btn donate" href="https://fundraise.cancerresearchuk.org/page/100-push-ups-a-day-in-september-challenge-7185" target="_blank" rel="noopener">💷 Donate</a>
     </div>
     <button class="refresh" id="refreshBtn">↻ Refresh team totals</button>
 
     <div class="foot">
-      Every rep counts toward one shared total.<br>Log honest, cheer loud, finish the season strong. 🏏
+      Three exercises, one team, every single day.<br>Log honest, cheer loud, finish October strong. 🏏
     </div>
   </main>
 
@@ -248,8 +245,13 @@
   </div>
 
 <script>
-const CRUK = 'https://fundraise.cancerresearchuk.org/page/100-push-ups-a-day-in-september-challenge-7185';
 const LS_KEY = 'pushup-me';
+const TARGET = 50;
+const EX = [
+  { key:'pushups', label:'Push-ups', icon:'💪' },
+  { key:'squats',  label:'Squats',   icon:'🦵' },
+  { key:'core',    label:'Core',     icon:'🧘' },
+];
 
 /* ---------- api ---------- */
 async function api(pathname, body){
@@ -264,29 +266,37 @@ function slug(s){ return String(s||'').toLowerCase().trim().replace(/[^a-z0-9]+/
 function keyOf(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function todayKey(){ return keyOf(new Date()); }
 function fmt(n){ return (Number(n)||0).toLocaleString('en-GB'); }
-function sumLog(log){ let t=0; for(const k in log){ t+=Number(log[k])||0; } return t; }
-function sumSept(log){ const p=septYear()+'-09-'; let t=0; for(const k in log){ if(k.startsWith(p)) t+=Number(log[k])||0; } return t; }
+function dayOf(log, k){
+  const raw = (log||{})[k];
+  const o = {};
+  EX.forEach(e=>{ o[e.key] = Math.max(0, Math.floor(Number(raw && raw[e.key])||0)); });
+  return o;
+}
+function dayTotal(day){ return EX.reduce((s,e)=>s+day[e.key],0); }
+function targetsHit(day){ return EX.reduce((s,e)=>s+(day[e.key]>=TARGET?1:0),0); }
+function sumLog(log){ let t=0; for(const k in (log||{})){ t+=dayTotal(dayOf(log,k)); } return t; }
+function octPrefix(){ return octYear()+'-10-'; }
+function sumOct(log){ const p=octPrefix(); let t=0; for(const k in (log||{})){ if(k.startsWith(p)) t+=dayTotal(dayOf(log,k)); } return t; }
 function prettyDate(){ return new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}); }
 function streak(log){
   let s=0; const d=new Date();
-  if(!((Number(log[keyOf(d)])||0)>0)) d.setDate(d.getDate()-1);
+  if(!(dayTotal(dayOf(log,keyOf(d)))>0)) d.setDate(d.getDate()-1);
   for(let i=0;i<400;i++){
-    if((Number(log[keyOf(d)])||0)>0){ s++; d.setDate(d.getDate()-1); } else break;
+    if(dayTotal(dayOf(log,keyOf(d)))>0){ s++; d.setDate(d.getDate()-1); } else break;
   }
   return s;
 }
 function dayChipText(){
   const d=new Date();
-  if(d.getMonth()===8) return 'Day '+d.getDate()+' of 30';
-  if(d.getMonth()<8) return 'Challenge starts 1 September';
-  return 'September challenge';
+  if(d.getMonth()===9) return 'Day '+d.getDate()+' of 31';
+  if(d.getMonth()<9) return 'Challenge starts 1 October';
+  return 'October challenge';
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 /* ---------- state ---------- */
 let me = null;       // {id, name}
 let members = [];    // [{id,name,log}]
-let donations = { target: 0, raised: 0 };
 
 function loadMe(){ try{ me = JSON.parse(localStorage.getItem(LS_KEY)); }catch(e){ me=null; } }
 function saveMe(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(me)); }catch(e){} }
@@ -294,6 +304,7 @@ function saveMe(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(me)); }catch
 /* ---------- boot ---------- */
 async function boot(){
   loadMe();
+  buildExerciseCards();
   if(me && me.id){ show('dashView'); await refresh(); startPolling(); }
   else { show('joinView'); loadJoinList(); }
 }
@@ -329,32 +340,55 @@ async function doJoin(){
   show('dashView'); await refresh(); startPolling();
 }
 
+/* ---------- your-day exercise cards (built once) ---------- */
+function buildExerciseCards(){
+  const wrap = document.getElementById('exList');
+  wrap.innerHTML = EX.map(e=>
+    '<div class="ex" data-ex="'+e.key+'">'
+    + '<div class="extop">'
+    +   '<span class="exname">'+e.icon+' '+e.label+'</span>'
+    +   '<span class="exnum" id="num-'+e.key+'">0 <small>/ '+TARGET+'</small></span>'
+    + '</div>'
+    + '<div class="bar" id="bar-'+e.key+'"><span></span></div>'
+    + '<div class="barnote" id="note-'+e.key+'">'+TARGET+' to go</div>'
+    + '<div class="quick">'
+    +   [10,25,50].map(n=>'<button data-add="'+n+'">+'+n+'</button>').join('')
+    +   '<input type="number" inputmode="numeric" min="1" placeholder="Other" />'
+    +   '<button class="add">Add</button>'
+    + '</div>'
+    + '</div>'
+  ).join('');
+  wrap.querySelectorAll('.ex').forEach(el=>{
+    const ex = el.dataset.ex;
+    el.querySelectorAll('button[data-add]').forEach(b=>
+      b.addEventListener('click', ()=>addReps(ex, b.dataset.add)));
+    const input = el.querySelector('input');
+    el.querySelector('.add').addEventListener('click', ()=>{ addReps(ex, input.value); input.value=''; });
+    input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ addReps(ex, input.value); input.value=''; } });
+  });
+}
+
 /* ---------- logging ---------- */
 function myRecord(){
   let m = members.find(x=>x.id===me.id);
   if(!m){ m = { id:me.id, name:me.name, log:{} }; members.push(m); }
   return m;
 }
-async function addReps(n){
+async function addReps(ex, n){
   n = Number(n)||0; if(n<=0) return;
   const date = todayKey();
   const m = myRecord();
-  m.log[date] = (Number(m.log[date])||0) + n;   // optimistic
+  const day = dayOf(m.log, date);
+  day[ex] += n;                          // optimistic
+  m.log[date] = day;
   renderAll();
-  try{ await api('/api/add', { id:me.id, name:me.name, amount:n, date }); }catch(e){}
+  try{ await api('/api/add', { id:me.id, name:me.name, exercise:ex, amount:n, date }); }catch(e){}
   await refresh();
 }
-document.querySelectorAll('.quick button').forEach(b=>{
-  b.addEventListener('click', ()=>addReps(b.dataset.add));
-});
-document.getElementById('customBtn').addEventListener('click', ()=>{
-  const el=document.getElementById('customInput'); addReps(el.value); el.value='';
-});
-document.getElementById('customInput').addEventListener('keydown', e=>{
-  if(e.key==='Enter'){ addReps(e.target.value); e.target.value=''; }
-});
 document.getElementById('resetToday').addEventListener('click', async ()=>{
-  const date = todayKey(); const m = myRecord(); m.log[date]=0; renderAll();
+  const date = todayKey(); const m = myRecord();
+  m.log[date] = { pushups:0, squats:0, core:0 };
+  renderAll();
   try{ await api('/api/reset', { id:me.id, date }); }catch(e){}
   await refresh();
 });
@@ -364,7 +398,6 @@ async function refresh(){
   try{
     const s = await api('/api/state');
     members = s.members || [];
-    donations = s.donations || { target:0, raised:0 };
   }catch(e){}
   renderAll();
 }
@@ -375,35 +408,28 @@ window.addEventListener('focus', ()=>{ if(me) refresh(); });
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && me) refresh(); });
 
 /* ---------- render ---------- */
-function renderAll(){ renderYou(); renderBoard(); renderFund(); }
-
-function renderFund(){
-  const card = document.getElementById('fundCard');
-  const t = Number(donations.target)||0, r = Number(donations.raised)||0;
-  if(t<=0 && r<=0){ card.classList.add('hidden'); return; }
-  card.classList.remove('hidden');
-  document.getElementById('fundRaised').textContent = '£'+fmt(r);
-  document.getElementById('fundTarget').textContent = t>0 ? 'of £'+fmt(t)+' target' : 'raised so far';
-  const bar = document.getElementById('fundBar');
-  bar.querySelector('span').style.width = (t>0 ? Math.min(100, r/t*100) : 0)+'%';
-  bar.classList.toggle('done', t>0 && r>=t);
-  document.getElementById('fundNote').innerHTML =
-    t<=0 ? '' : (r>=t ? '<b>Target smashed — legends!</b> 🎉' : '£'+fmt(Math.max(0,t-r))+' to go — every donation counts 💷');
-}
+function renderAll(){ renderYou(); renderBoard(); }
 
 function renderYou(){
   const mine = me ? members.find(x=>x.id===me.id) : null;
   const log = mine ? (mine.log||{}) : {};
-  const today = Number(log[todayKey()])||0;
-  document.getElementById('todayCount').textContent = today;
+  const day = dayOf(log, todayKey());
   document.getElementById('todayDate').textContent = prettyDate();
-  const pct = Math.min(100, today/100*100);
-  const bar = document.getElementById('todayBar');
-  bar.querySelector('span').style.width = pct+'%';
-  bar.classList.toggle('done', today>=100);
-  const note = document.getElementById('barNote');
-  if(today>=100){ note.innerHTML = "<b>Target smashed!</b> " + (today>100 ? (today-100)+" over the ton 💪" : "That's the ton for today 🏅"); }
-  else { note.textContent = (100-today)+' to go today'; }
+  EX.forEach(e=>{
+    const v = day[e.key];
+    const numEl = document.getElementById('num-'+e.key);
+    numEl.innerHTML = fmt(v)+' <small>/ '+TARGET+'</small>';
+    numEl.classList.toggle('hit', v>=TARGET);
+    const bar = document.getElementById('bar-'+e.key);
+    bar.querySelector('span').style.width = Math.min(100, v/TARGET*100)+'%';
+    bar.classList.toggle('done', v>=TARGET);
+    const note = document.getElementById('note-'+e.key);
+    if(v>=TARGET){ note.innerHTML = '<b>Target hit!</b>'+(v>TARGET ? ' '+(v-TARGET)+' over 💪' : ' Nailed it ✔'); }
+    else { note.textContent = (TARGET-v)+' to go'; }
+  });
+  const hits = targetsHit(day);
+  document.querySelectorAll('#targetDots i').forEach((dot,i)=>dot.classList.toggle('on', i<hits));
+  document.getElementById('targetLabel').textContent = hits+'/3 targets'+(hits===3?' — day done! 🏅':'');
   document.getElementById('streakLabel').textContent = streak(log)+' day streak 🔥';
 }
 
@@ -412,12 +438,14 @@ function lastNDays(n){
   for(let i=n;i>=1;i--){ const d=new Date(); d.setDate(d.getDate()-i); out.push(d); }
   return out;
 }
-function histChips(days, valueOf, showZeroAsDot){
+/* chips for one player's history: reps total, coloured by targets hit that day */
+function playerHistChips(days, log){
   return days.map(d=>{
-    const v = valueOf(keyOf(d));
-    const cls = v>=100 ? ' ton' : (v>0 ? ' part' : '');
+    const day = dayOf(log, keyOf(d));
+    const t = dayTotal(day), hits = targetsHit(day);
+    const cls = hits===3 ? ' full' : (t>0 ? ' part' : '');
     const wd = d.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2);
-    return '<span class="h'+cls+'">'+wd+' '+(v>0?fmt(v):(showZeroAsDot?'·':'0'))+'</span>';
+    return '<span class="h'+cls+'">'+wd+' '+(t>0?fmt(t):'·')+'</span>';
   }).join('');
 }
 
@@ -427,30 +455,46 @@ function renderBoard(){
   const hist = lastNDays(7);
   const people = members.map(m=>{
     const log = m.log||{};
-    return { id:m.id, name:m.name||'Player', log, today:Number(log[tk])||0, sept:sumSept(log) };
+    const day = dayOf(log, tk);
+    return { id:m.id, name:m.name||'Player', log, day,
+             today:dayTotal(day), hits:targetsHit(day), oct:sumOct(log) };
   });
-  people.sort((a,b)=> b.today-a.today || b.sept-a.sept || a.name.localeCompare(b.name));
+  /* rank: targets hit first, then reps today, then October total */
+  people.sort((a,b)=> b.hits-a.hits || b.today-a.today || b.oct-a.oct || a.name.localeCompare(b.name));
   const team = people.reduce((s,p)=>s+p.today,0);
 
   document.getElementById('memberCount').textContent = people.length;
   document.getElementById('dayChip').textContent = dayChipText();
   countTo('teamTotal', lastTeamTotal, team); lastTeamTotal = team;
-  document.getElementById('teamHist').innerHTML =
-    histChips(hist, k=>members.reduce((s,m)=>s+(Number((m.log||{})[k])||0),0), true);
+  document.getElementById('teamBreak').innerHTML = EX.map(e=>{
+    const t = people.reduce((s,p)=>s+p.day[e.key],0);
+    return '<span class="bk">'+e.icon+' '+e.label+' <b>'+fmt(t)+'</b></span>';
+  }).join('');
+  document.getElementById('teamHist').innerHTML = hist.map(d=>{
+    const k = keyOf(d);
+    const t = members.reduce((s,m)=>s+dayTotal(dayOf(m.log||{},k)),0);
+    const wd = d.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2);
+    return '<span class="h'+(t>0?' part':'')+'">'+wd+' '+(t>0?fmt(t):'·')+'</span>';
+  }).join('');
 
   const medals = ['🥇','🥈','🥉'];
   const board = document.getElementById('board');
-  if(people.length===0){ board.innerHTML = '<div class="empty">No push-ups logged yet — be the first on the board.</div>'; return; }
+  if(people.length===0){ board.innerHTML = '<div class="empty">Nothing logged yet — be the first on the board.</div>'; return; }
   board.innerHTML = people.map((p,i)=>{
     const isMe = me && p.id===me.id;
     const rank = i<3 ? medals[i] : (i+1);
+    const chips = EX.map(e=>{
+      const v = p.day[e.key];
+      const cls = v>=TARGET ? ' hit' : (v>0 ? ' part' : '');
+      return '<span class="exchip'+cls+'">'+e.icon+' '+fmt(v)+(v>=TARGET?' ✓':'')+'</span>';
+    }).join('');
     return '<div class="row click'+(isMe?' me':'')+'" data-id="'+escapeHtml(p.id)+'">'
       + '<div class="rank">'+rank+'</div>'
       + '<div class="mid">'
       +   '<div class="name">'+escapeHtml(p.name)+(isMe?'<span class="youtag">YOU</span>':'')+'</div>'
-      +   '<div class="hist">'+histChips(hist, k=>Number(p.log[k])||0, true)+'</div>'
+      +   '<div class="exchips">'+chips+'</div>'
       + '</div>'
-      + '<div class="score">'+fmt(p.today)+'<small>'+ (p.today>=100 ? 'ton done ✔' : (100-p.today)+' to go') +'</small></div>'
+      + '<div class="score'+(p.hits===3?' full':'')+'">'+p.hits+'/3<small>'+fmt(p.today)+' reps</small></div>'
       + '</div>';
   }).join('');
   board.querySelectorAll('.row.click').forEach(r=>{
@@ -459,54 +503,68 @@ function renderBoard(){
 }
 
 /* ---------- player detail modal ---------- */
-function septYear(){ return new Date().getFullYear(); }
-function septKey(day){ return septYear()+'-09-'+String(day).padStart(2,'0'); }
+function octYear(){ return new Date().getFullYear(); }
+function octKey(day){ return octYear()+'-10-'+String(day).padStart(2,'0'); }
 
-function septStats(log){
-  const days=[]; let total=0, best=0, bestDay=0, tons=0, logged=0;
-  for(let d=1; d<=30; d++){
-    const v = Number(log[septKey(d)])||0;
-    days.push(v); total+=v;
-    if(v>0) logged++;
-    if(v>=100) tons++;
-    if(v>best){ best=v; bestDay=d; }
+function octStats(log){
+  const days=[]; let total=0, best=0, bestDay=0, fullDays=0, logged=0;
+  const perEx = { pushups:0, squats:0, core:0 };
+  for(let d=1; d<=31; d++){
+    const day = dayOf(log, octKey(d));
+    const t = dayTotal(day), hits = targetsHit(day);
+    days.push({ total:t, hits });
+    total+=t;
+    EX.forEach(e=>{ perEx[e.key]+=day[e.key]; });
+    if(t>0) logged++;
+    if(hits===3) fullDays++;
+    if(t>best){ best=t; bestDay=d; }
   }
   let perfectWeek=false, run=0;
-  for(const v of days){ run = v>=100 ? run+1 : 0; if(run>=7){ perfectWeek=true; break; } }
-  return { days, total, best, bestDay, tons, logged, perfectWeek };
+  for(const d of days){ run = d.hits===3 ? run+1 : 0; if(run>=7){ perfectWeek=true; break; } }
+  const centuryDay = (()=>{  // 100+ in a single exercise in one day
+    for(let d=1; d<=31; d++){
+      const day = dayOf(log, octKey(d));
+      if(EX.some(e=>day[e.key]>=100)) return true;
+    }
+    return false;
+  })();
+  return { days, total, best, bestDay, fullDays, logged, perfectWeek, centuryDay, perEx };
 }
 
 function showPlayer(id){
   const m = members.find(x=>x.id===id);
   if(!m) return;
   const log = m.log||{};
-  const s = septStats(log);
-  const allTime = sumLog(log);
+  const s = octStats(log);
+  const today = dayOf(log, todayKey());
   const badges = [
-    { icon:'💪', label:'Off the mark',  on: allTime>0,        tip:'first push-ups logged' },
-    { icon:'🏅', label:'First ton',     on: s.best>=100,      tip:'100 in a day' },
-    { icon:'⚡', label:'150 club',      on: s.best>=150,      tip:'150+ in a day' },
-    { icon:'🔥', label:'Perfect week',  on: s.perfectWeek,    tip:'7 straight days of 100+' },
-    { icon:'🥉', label:'1,000 club',    on: s.total>=1000,    tip:'1,000 in September' },
-    { icon:'🥈', label:'2,000 club',    on: s.total>=2000,    tip:'2,000 in September' },
-    { icon:'🏆', label:'Full 3,000',    on: s.total>=3000,    tip:'the whole challenge' },
+    { icon:'💪', label:'Off the mark',   on: s.total>0,        tip:'first reps logged' },
+    { icon:'🎯', label:'First triple',   on: s.fullDays>=1,    tip:'all 3 targets in one day' },
+    { icon:'⚡', label:'Century',        on: s.centuryDay,     tip:'100+ in a single exercise in one day' },
+    { icon:'🔥', label:'Perfect week',   on: s.perfectWeek,    tip:'7 straight days of all 3 targets' },
+    { icon:'🥉', label:'1,500 club',     on: s.total>=1500,    tip:'1,500 reps in October' },
+    { icon:'🥈', label:'3,000 club',     on: s.total>=3000,    tip:'3,000 reps in October' },
+    { icon:'🏆', label:'Full 4,650',     on: s.total>=4650,    tip:'the whole challenge — 50×3×31' },
   ];
   const box = document.getElementById('modalBox');
   box.innerHTML =
     '<div class="mhead"><h3>'+escapeHtml(m.name||'Player')+'</h3>'
     + '<button class="close" id="modalClose">Close ✕</button></div>'
-    + '<div class="msub">September '+septYear()+' · Sept total '+fmt(s.total)+' · all-time '+fmt(allTime)+'</div>'
+    + '<div class="msub">October '+octYear()+' · '+fmt(s.total)+' reps · all-time '+fmt(sumLog(log))+'</div>'
     + '<div class="statgrid">'
-    +   '<div class="stat"><div class="v">'+fmt(Number(log[todayKey()])||0)+'</div><div class="l">Today</div></div>'
+    +   '<div class="stat"><div class="v">'+targetsHit(today)+'/3</div><div class="l">Today</div></div>'
     +   '<div class="stat"><div class="v">'+fmt(s.best)+'</div><div class="l">Best day'+(s.bestDay?' · '+s.bestDay+'th':'')+'</div></div>'
     +   '<div class="stat"><div class="v">'+streak(log)+'</div><div class="l">Streak</div></div>'
-    +   '<div class="stat"><div class="v">'+s.tons+'/30</div><div class="l">Ton days</div></div>'
+    +   '<div class="stat"><div class="v">'+s.fullDays+'/31</div><div class="l">Full days</div></div>'
     + '</div>'
-    + '<div class="mlabel">Daily log · September</div>'
+    + '<div class="statgrid three">'
+    +   EX.map(e=>'<div class="stat"><div class="v">'+fmt(s.perEx[e.key])+'</div><div class="l">'+e.icon+' '+e.label+'</div></div>').join('')
+    + '</div>'
+    + '<div class="mlabel">Daily log · October (reps · gold = all 3 targets)</div>'
     + '<div class="cal">'
-    +   s.days.map((v,i)=>{
-        const cls = v>=100 ? ' ton' : (v>0 ? ' part' : '');
-        return '<div class="d'+cls+'">'+(i+1)+'<b>'+(v>0?fmt(v):'·')+'</b></div>';
+    +   s.days.map((d,i)=>{
+        const cls = d.hits===3 ? ' full' : (d.total>0 ? ' part' : '');
+        return '<div class="d'+cls+'">'+(i+1)+'<b>'+(d.total>0?fmt(d.total):'·')+'</b></div>';
       }).join('')
     + '</div>'
     + '<div class="mlabel">Achievements</div>'
@@ -536,20 +594,23 @@ function countTo(id, from, to){
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   await refresh();
   const tk = todayKey();
-  const people = members.map(m=>({ name:m.name||'Player', total:Number((m.log||{})[tk])||0 }))
-                        .sort((a,b)=>b.total-a.total);
+  const people = members.map(m=>{
+    const day = dayOf(m.log||{}, tk);
+    return { name:m.name||'Player', total:dayTotal(day), hits:targetsHit(day) };
+  }).sort((a,b)=> b.hits-a.hits || b.total-a.total);
   const team = people.reduce((s,p)=>s+p.total,0);
-  const top = people.slice(0,5).map((p,i)=>`${i+1}. ${p.name} — ${fmt(p.total)}`).join('\n');
+  const top = people.slice(0,5).map((p,i)=>`${i+1}. ${p.name} — ${p.hits}/3 targets · ${fmt(p.total)} reps`).join('\n');
   const text =
-`🏏 TEAM PUSH-UP CHALLENGE ${dayChipText().toUpperCase()}
+`🏏 TRIPLE-50 OCTOBER CHALLENGE — ${dayChipText().toUpperCase()}
 
-💪 Team total today: ${fmt(team)} push-ups — raised together!
+💪 50 push-ups · 🦵 50 squats · 🧘 50 core — every day!
+
+🔥 Team total today: ${fmt(team)} reps
 
 🏅 Today's standings:
 ${top || '— get logging! —'}
 
-Log yours 👉 ${location.origin}
-Donate (optional): ${CRUK}`;
+Log yours 👉 ${location.origin}`;
   if(navigator.share){ navigator.share({text}).catch(()=>{}); }
   else { window.open('https://wa.me/?text='+encodeURIComponent(text), '_blank'); }
 });

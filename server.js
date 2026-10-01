@@ -21,13 +21,25 @@ try {
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 const TMP_FILE = DB_FILE + '.tmp';
 
-/* ---------- load ---------- */
-let db = { members: {}, donations: { target: 0, raised: 0 } };
+/* ---------- load ----------
+   v2 schema (October challenge): each day holds three exercises.
+   { version: 2, members: { id: { name, log: { "YYYY-MM-DD": { pushups, squats, core } } } } }
+   A v1 (September) db.json found on the volume is archived untouched and the
+   app starts with an empty roster. */
+const EXERCISES = ['pushups', 'squats', 'core'];
+let db = { version: 2, members: {} };
 try {
   const parsed = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-  if (parsed && typeof parsed === 'object') { db = parsed; if (!db.members) db.members = {}; }
-} catch (e) { db = { members: {} }; }
-if (!db.donations) db.donations = { target: 0, raised: 0 };
+  if (parsed && typeof parsed === 'object') {
+    if (parsed.version === 2) {
+      db = parsed;
+      if (!db.members) db.members = {};
+    } else {
+      try { fs.renameSync(DB_FILE, path.join(DATA_DIR, 'db-september-archive.json')); }
+      catch (e) { console.error('archive of v1 db failed:', e.message); }
+    }
+  }
+} catch (e) { /* no db yet — start fresh */ }
 
 /* ---------- atomic write queue ---------- */
 let chain = Promise.resolve();
@@ -53,6 +65,12 @@ function clampAmt(n) {
 }
 function cleanName(s) { return String(s || '').trim().slice(0, 24); }
 function validDate(d) { return /^\d{4}-\d{2}-\d{2}$/.test(String(d || '')); }
+function validExercise(e) { return EXERCISES.includes(e); }
+function dayObj(v) {
+  const o = {};
+  for (const ex of EXERCISES) o[ex] = clampAmt(v && v[ex]);
+  return o;
+}
 function upsert(id, name) {
   if (!db.members[id]) db.members[id] = { name: name || 'Player', log: {} };
   else if (name) db.members[id].name = name;
@@ -60,18 +78,12 @@ function upsert(id, name) {
   return db.members[id];
 }
 
-function money(n) {
-  n = Number(n);
-  if (!isFinite(n) || n < 0) return 0;
-  return Math.min(10000000, Math.round(n * 100) / 100);
-}
-
 /* ---------- API ---------- */
 app.get('/api/state', (req, res) => {
   const members = Object.entries(db.members).map(([id, m]) => ({
     id, name: m.name, log: m.log || {}
   }));
-  res.json({ members, donations: db.donations });
+  res.json({ members, exercises: EXERCISES, target: 50 });
 });
 
 app.post('/api/join', async (req, res) => {
@@ -86,20 +98,29 @@ app.post('/api/join', async (req, res) => {
 app.post('/api/add', async (req, res) => {
   const name = cleanName(req.body.name);
   const id = slug(req.body.id) || slug(name);
+  const exercise = String(req.body.exercise || '');
   const amount = clampAmt(req.body.amount);
   const date = validDate(req.body.date) ? req.body.date : null;
-  if (!id || !date) return res.status(400).json({ error: 'bad request' });
+  if (!id || !date || !validExercise(exercise)) return res.status(400).json({ error: 'bad request' });
   const m = upsert(id, name);
-  m.log[date] = clampAmt((m.log[date] || 0) + amount);
+  const day = dayObj(m.log[date]);
+  day[exercise] = clampAmt(day[exercise] + amount);
+  m.log[date] = day;
   await persist();
   res.json({ ok: true });
 });
 
+/* Resets the whole day, or a single exercise if one is given. */
 app.post('/api/reset', async (req, res) => {
   const id = slug(req.body.id);
   const date = validDate(req.body.date) ? req.body.date : null;
+  const exercise = req.body.exercise ? String(req.body.exercise) : null;
   if (!id || !date || !db.members[id]) return res.status(400).json({ error: 'bad request' });
-  db.members[id].log[date] = 0;
+  if (exercise && !validExercise(exercise)) return res.status(400).json({ error: 'bad request' });
+  const day = dayObj(db.members[id].log[date]);
+  if (exercise) day[exercise] = 0;
+  else for (const ex of EXERCISES) day[ex] = 0;
+  db.members[id].log[date] = day;
   await persist();
   res.json({ ok: true });
 });
@@ -133,20 +154,15 @@ app.post('/api/admin/remove', requireAdmin, async (req, res) => {
   res.json({ ok: true });
 });
 
+/* Sets (not adds) all three exercises for a member's day. */
 app.post('/api/admin/setday', requireAdmin, async (req, res) => {
   const id = slug(req.body.id);
   const date = validDate(req.body.date) ? req.body.date : null;
   if (!id || !date || !db.members[id]) return res.status(400).json({ error: 'bad request' });
   if (!db.members[id].log) db.members[id].log = {};
-  db.members[id].log[date] = clampAmt(req.body.amount);
+  db.members[id].log[date] = dayObj(req.body);
   await persist();
   res.json({ ok: true });
-});
-
-app.post('/api/admin/donations', requireAdmin, async (req, res) => {
-  db.donations = { target: money(req.body.target), raised: money(req.body.raised) };
-  await persist();
-  res.json({ ok: true, donations: db.donations });
 });
 
 /* ---------- static frontend ---------- */
@@ -155,4 +171,4 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Push-up tracker running on ${PORT} — data dir: ${DATA_DIR}`));
+app.listen(PORT, () => console.log(`Triple-50 tracker running on ${PORT} — data dir: ${DATA_DIR}`));
